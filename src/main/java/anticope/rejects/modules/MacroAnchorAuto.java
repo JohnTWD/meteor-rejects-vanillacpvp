@@ -13,6 +13,7 @@ import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventPriority;
+import net.minecraft.block.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -96,16 +97,34 @@ public class MacroAnchorAuto extends Module {
             if (phase == 0 && handItem == Items.RESPAWN_ANCHOR) {
                 //placeBlok
                 BlockPos toPlaceOn = ((BlockHitResult) mc.crosshairTarget).getBlockPos();
+                if (mc.world.getBlockState(toPlaceOn).getBlock() != Blocks.RESPAWN_ANCHOR) {
+                    int sidex = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetX();
+                    int sidey = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetY();
+                    int sidez = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetZ();
 
-                int sidex = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetX();
-                int sidey = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetY();
-                int sidez = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetZ();
+                    toPlaceOn = toPlaceOn.add(sidex, sidey, sidez);
 
-                toPlaceOn = toPlaceOn.add(sidex, sidey, sidez);
-
-                BlockUtils.place(toPlaceOn, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
-
+                    BlockUtils.place(toPlaceOn, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+                }
                 phase = 1;
+                return;
+            }
+
+            if (phase == 1 && pDel <= 0) {
+                if (!shouldUseInv.get()) {
+                    FindItemResult result = InvUtils.find(Items.GLOWSTONE);
+                    if (result.isHotbar())
+                        InvUtils.swap(result.slot(), false);
+                    else {
+                        warning("No more GLOWSTONE! Disabling!");
+                        toggle();
+                    }
+                }
+                BlockHitResult asshair = (BlockHitResult)mc.crosshairTarget;
+                info("attempting charge! %d %d %d", asshair.getBlockPos().getX(), asshair.getBlockPos().getY(), asshair.getBlockPos().getZ());
+                mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
+                phase = 2;
+                return;
             }
 
             if (phase == 2 && cDel <= 0) {
@@ -123,10 +142,10 @@ public class MacroAnchorAuto extends Module {
                 }
                 // replace with mc.interactionManager.interactBlock (blow up!)
                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, (BlockHitResult)mc.crosshairTarget);
-
+                phase = 0;
                 if (emptyWarningThrown)
                     toggle();
-                phase = 0;
+                return;
             }
             if (phase == 1) pDel--; // decr ticks
             else if (phase == 2) cDel--;
@@ -139,26 +158,13 @@ public class MacroAnchorAuto extends Module {
             cDel = chargeAnchorDel.get();
             phase = 0;
         }
+        return;
 
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     private void onPlaceBlock(PlaceBlockEvent event) {
-        if (phase == 1 && pDel <= 0) {
-            if (!shouldUseInv.get()) {
-                FindItemResult result = InvUtils.find(Items.GLOWSTONE);
-                if (result.isHotbar())
-                    InvUtils.swap(result.slot(), false);
-                else {
-                    warning("No more GLOWSTONE! Disabling!");
-                    toggle();
-                }
-            }
-            BlockHitResult asshair = (BlockHitResult)mc.crosshairTarget;
-            info("attempting charge! %d %d %d", asshair.getBlockPos().getX(), asshair.getBlockPos().getY(), asshair.getBlockPos().getZ());
-            mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
-            phase = 2;
-        }
+
     }
 
     public Boolean disablePlacing() {
