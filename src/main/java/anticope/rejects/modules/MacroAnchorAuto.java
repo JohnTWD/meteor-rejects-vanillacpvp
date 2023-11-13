@@ -121,7 +121,7 @@ public class MacroAnchorAuto extends Module {
                     }
                 }
                 BlockHitResult asshair = (BlockHitResult)mc.crosshairTarget;
-                info("attempting charge! %d %d %d", asshair.getBlockPos().getX(), asshair.getBlockPos().getY(), asshair.getBlockPos().getZ());
+                //info("attempting charge! %d %d %d", asshair.getBlockPos().getX(), asshair.getBlockPos().getY(), asshair.getBlockPos().getZ());
                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
                 phase = 2;
                 return;
@@ -140,18 +140,19 @@ public class MacroAnchorAuto extends Module {
                         InvUtils.swap(mc.player.getInventory().selectedSlot + 1, false);
                     }
                 }
-                // replace with mc.interactionManager.interactBlock (blow up!)
+
                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, (BlockHitResult)mc.crosshairTarget);
-                phase = 0;
+                phase = 3;
                 if (emptyWarningThrown)
                     toggle();
                 return;
             }
             if (phase == 1) pDel--; // decr ticks
             else if (phase == 2) cDel--;
-            else if (phase == 0) {
+            else {
                 pDel = placeAnchorDel.get();
                 cDel = chargeAnchorDel.get();
+                phase = 0;
             }
         } else {
             pDel = placeAnchorDel.get();
