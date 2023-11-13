@@ -8,6 +8,8 @@ import meteordevelopment.meteorclient.settings.IntSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
+import meteordevelopment.meteorclient.utils.player.FindItemResult;
+import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventPriority;
@@ -66,14 +68,13 @@ public class MacroAnchorAuto extends Module {
             .defaultValue(false)
             .build()
     );
-    private int Odel = 0;
-    private boolean hasAnchored = false;
+    private int Pdel = placeAnchorDel.get();
+    private int Cdel = chargeAnchorDel.get();
     private int phase = 0;
     /* PHASES
-     * 0 = Begin
-     * 1 = Anchor placed
-     * 2 = Charge w/ GS
-     * 3 = Switch back to anchor and activate
+     * 0 = Begin & Anchor placed
+     * 1 = Charge w/ GS
+     * 2 = Switch back to anchor and activate
      */
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -83,31 +84,72 @@ public class MacroAnchorAuto extends Module {
 
         Item handItem = mainHand.getItem();
 
-        if (!hasAnchored && mc.options.useKey.isPressed() && handItem == Items.RESPAWN_ANCHOR) {
-            //placeBlok
-            BlockPos toPlaceOn = ((BlockHitResult) mc.crosshairTarget).getBlockPos();
+        if (mc.options.useKey.isPressed()) {
 
-            int sidex = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetX();
-            int sidey = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetY();
-            int sidez = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetZ();
+            if (phase == 0 && handItem == Items.RESPAWN_ANCHOR) {
+                //placeBlok
+                BlockPos toPlaceOn = ((BlockHitResult) mc.crosshairTarget).getBlockPos();
 
-            toPlaceOn = toPlaceOn.add(sidex, sidey, sidez);
+                int sidex = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetX();
+                int sidey = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetY();
+                int sidez = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetZ();
 
-            info("%d %d %d", toPlaceOn.getX(), toPlaceOn.getY(), toPlaceOn.getZ());
-            info("side: %d %d %d", sidex, sidey, sidez);
-            BlockUtils.place(toPlaceOn, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+                toPlaceOn = toPlaceOn.add(sidex, sidey, sidez);
 
-            hasAnchored = true;
-            phase = 1;
+                info("%d %d %d", toPlaceOn.getX(), toPlaceOn.getY(), toPlaceOn.getZ());
+                info("side: %d %d %d", sidex, sidey, sidez);
+                BlockUtils.place(toPlaceOn, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+
+                phase = 1;
+            }
+
+            if (phase == 2) {
+                FindItemResult result = InvUtils.find(Items.RESPAWN_ANCHOR);
+                boolean emptyWarningThrown = false;
+
+                if (!shouldUseInv.get()) {
+                    if (result.isHotbar())
+                        InvUtils.swap(result.slot(), false);
+                    else {
+                        warning("No more anchors!");
+                        emptyWarningThrown = true;
+                        InvUtils.swap(mc.player.getInventory().selectedSlot + 1, false);
+                    }
+                }
+                // replace with mc.interactionManager.interactBlock (blow up!)
+                BlockUtils.place(((BlockHitResult) mc.crosshairTarget).getBlockPos(), Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+
+                if (emptyWarningThrown)
+                    toggle();
+                phase = 0;
+            }
         }
-    }
 
-    private BlockPos findBlockForPlace(){
-        return null;
+
+        if (phase == 1) Pdel--; // decr ticks
+        else if (phase == 2) Cdel--;
+        else if (phase == 0) {
+            Pdel = placeAnchorDel.get();
+            Cdel = chargeAnchorDel.get();
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     private void onPlaceBlock(PlaceBlockEvent event) {
+        if (phase == 1 && Pdel <= 0) {
+            if (!shouldUseInv.get()) {
+                FindItemResult result = InvUtils.find(Items.GLOWSTONE);
+                if (result.isHotbar())
+                    InvUtils.swap(result.slot(), false);
+                else {
+                    warning("No more GLOWSTONE! Disabling!");
+                    toggle();
+                }
+            }
+            // to replace with  mc.interactionManager.interactBlock
+            BlockUtils.place(((BlockHitResult) mc.crosshairTarget).getBlockPos(), Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+            phase = 2;
+        }
     }
 
     public Boolean disablePlacing() {
