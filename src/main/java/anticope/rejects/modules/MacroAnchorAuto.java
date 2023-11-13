@@ -121,10 +121,14 @@ public class MacroAnchorAuto extends Module {
                     }
                 }
                 BlockHitResult asshair = (BlockHitResult)mc.crosshairTarget;
-                //info("attempting charge! %d %d %d", asshair.getBlockPos().getX(), asshair.getBlockPos().getY(), asshair.getBlockPos().getZ());
                 assert mc.interactionManager != null;
-                mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
-                phase = 2;
+
+                if (mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR) {
+                    mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
+                    phase = 2;
+                } else {
+                    phase = 3;
+                }
                 return;
             }
 
