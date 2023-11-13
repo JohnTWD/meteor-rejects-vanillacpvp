@@ -96,8 +96,6 @@ public class MacroAnchorAuto extends Module {
 
                 toPlaceOn = toPlaceOn.add(sidex, sidey, sidez);
 
-                info("%d %d %d", toPlaceOn.getX(), toPlaceOn.getY(), toPlaceOn.getZ());
-                info("side: %d %d %d", sidex, sidey, sidez);
                 BlockUtils.place(toPlaceOn, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
 
                 phase = 1;
@@ -117,7 +115,7 @@ public class MacroAnchorAuto extends Module {
                     }
                 }
                 // replace with mc.interactionManager.interactBlock (blow up!)
-                BlockUtils.place(((BlockHitResult) mc.crosshairTarget).getBlockPos(), Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+                mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, (BlockHitResult)mc.crosshairTarget);
 
                 if (emptyWarningThrown)
                     toggle();
@@ -146,8 +144,9 @@ public class MacroAnchorAuto extends Module {
                     toggle();
                 }
             }
-            // to replace with  mc.interactionManager.interactBlock
-            BlockUtils.place(((BlockHitResult) mc.crosshairTarget).getBlockPos(), Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+            BlockHitResult asshair = (BlockHitResult)mc.crosshairTarget;
+            info("attempting charge! %d %d %d", asshair.getBlockPos().getX(), asshair.getBlockPos().getY(), asshair.getBlockPos().getZ());
+            mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
             phase = 2;
         }
     }
