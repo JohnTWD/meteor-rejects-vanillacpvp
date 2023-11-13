@@ -68,14 +68,21 @@ public class MacroAnchorAuto extends Module {
             .defaultValue(false)
             .build()
     );
-    private int Pdel = placeAnchorDel.get();
-    private int Cdel = chargeAnchorDel.get();
+    private int pDel = placeAnchorDel.get();
+    private int cDel = chargeAnchorDel.get();
     private int phase = 0;
     /* PHASES
      * 0 = Begin & Anchor placed
      * 1 = Charge w/ GS
      * 2 = Switch back to anchor and activate
      */
+
+    @Override
+    public void onActivate() {
+        pDel = 0;
+        cDel = 0;
+        phase = 0;
+    }
 
     @EventHandler(priority = EventPriority.HIGH)
     private void onTick(TickEvent.Post event) {
@@ -101,7 +108,7 @@ public class MacroAnchorAuto extends Module {
                 phase = 1;
             }
 
-            if (phase == 2) {
+            if (phase == 2 && cDel <= 0) {
                 FindItemResult result = InvUtils.find(Items.RESPAWN_ANCHOR);
                 boolean emptyWarningThrown = false;
 
@@ -121,20 +128,23 @@ public class MacroAnchorAuto extends Module {
                     toggle();
                 phase = 0;
             }
+            if (phase == 1) pDel--; // decr ticks
+            else if (phase == 2) cDel--;
+            else if (phase == 0) {
+                pDel = placeAnchorDel.get();
+                cDel = chargeAnchorDel.get();
+            }
+        } else {
+            pDel = placeAnchorDel.get();
+            cDel = chargeAnchorDel.get();
+            phase = 0;
         }
 
-
-        if (phase == 1) Pdel--; // decr ticks
-        else if (phase == 2) Cdel--;
-        else if (phase == 0) {
-            Pdel = placeAnchorDel.get();
-            Cdel = chargeAnchorDel.get();
-        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     private void onPlaceBlock(PlaceBlockEvent event) {
-        if (phase == 1 && Pdel <= 0) {
+        if (phase == 1 && pDel <= 0) {
             if (!shouldUseInv.get()) {
                 FindItemResult result = InvUtils.find(Items.GLOWSTONE);
                 if (result.isHotbar())
