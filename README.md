@@ -1,3 +1,12 @@
+Hello sars this is my fork for meteor rejects
+
+TODO list: [D]one, [O]ngoing [N]ext
+[D]Tweaked Auto Tool
+[O]Macro for Anchors
+[N]Manual Crystal
+[N]Web burrow
+[N]Tweaked No Entity Trace
+
 <div align="center">
   <!-- Logo and Title -->
   <img src="/src/main/resources/assets/rejects/icon.png" alt="logo" width="20%"/>
