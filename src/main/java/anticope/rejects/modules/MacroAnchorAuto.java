@@ -3,7 +3,6 @@ package anticope.rejects.modules;
 import anticope.rejects.MeteorRejectsAddon;
 import meteordevelopment.meteorclient.settings.BoolSetting;
 import meteordevelopment.meteorclient.events.world.TickEvent;
-import meteordevelopment.meteorclient.events.entity.player.PlaceBlockEvent;
 import meteordevelopment.meteorclient.settings.IntSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
@@ -17,11 +16,9 @@ import net.minecraft.block.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.Items.*;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 
 public class MacroAnchorAuto extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -87,6 +84,7 @@ public class MacroAnchorAuto extends Module {
 
     @EventHandler(priority = EventPriority.HIGH)
     private void onTick(TickEvent.Post event) {
+        if (mc.player == null) return;
         ItemStack mainHand = mc.player.getMainHandStack();
         if (mainHand == null) return;
 
@@ -96,7 +94,9 @@ public class MacroAnchorAuto extends Module {
 
             if (phase == 0 && handItem == Items.RESPAWN_ANCHOR) {
                 //placeBlok
+                assert mc.crosshairTarget != null;
                 BlockPos toPlaceOn = ((BlockHitResult) mc.crosshairTarget).getBlockPos();
+                assert mc.world != null;
                 if (mc.world.getBlockState(toPlaceOn).getBlock() != Blocks.RESPAWN_ANCHOR) {
                     int sidex = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetX();
                     int sidey = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetY();
@@ -122,6 +122,7 @@ public class MacroAnchorAuto extends Module {
                 }
                 BlockHitResult asshair = (BlockHitResult)mc.crosshairTarget;
                 //info("attempting charge! %d %d %d", asshair.getBlockPos().getX(), asshair.getBlockPos().getY(), asshair.getBlockPos().getZ());
+                assert mc.interactionManager != null;
                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
                 phase = 2;
                 return;
@@ -141,6 +142,7 @@ public class MacroAnchorAuto extends Module {
                     }
                 }
 
+                assert mc.interactionManager != null;
                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, (BlockHitResult)mc.crosshairTarget);
                 phase = 3;
                 if (emptyWarningThrown)
@@ -159,17 +161,11 @@ public class MacroAnchorAuto extends Module {
             cDel = chargeAnchorDel.get();
             phase = 0;
         }
-        return;
-
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    private void onPlaceBlock(PlaceBlockEvent event) {
-
     }
 
     public Boolean disablePlacing() {
         if (!isActive()) return false;
+        if (mc.player == null) return false;
         Item handItem = mc.player.getMainHandStack().getItem();
         return (handItem == Items.RESPAWN_ANCHOR) || (handItem == Items.GLOWSTONE);
     }
