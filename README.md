@@ -2,6 +2,7 @@
 ## TODO list: [D]one, [O]ngoing [N]ext
 - [D]Tweaked Auto Tool
 - [O]Macro for Anchors
+- - Add grabbing from inv, 'smarter' delay
 - [N]Manual Crystal
 - [N]Web burrow
 - [N]Tweaked No Entity Trace
