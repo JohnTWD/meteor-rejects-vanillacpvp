@@ -1,9 +1,8 @@
 # Hello sars this is my fork for meteor rejects
 ## TODO list: [D]one, [O]ngoing [N]ext
 - [D]Tweaked Auto Tool
-- [O]Macro for Anchors
-- - Add grabbing from inv, 'smarter' delay
-- [N]Manual Crystal
+- [D]Macro for Anchors
+- [O]Manual Crystal
 - [N]Web burrow
 - [N]Tweaked No Entity Trace
 
