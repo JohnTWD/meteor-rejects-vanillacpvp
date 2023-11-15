@@ -149,13 +149,13 @@ public class MacroAnchorAuto extends Module {
             } else if (phase == 4 && cDel <= 0){
                 assert mc.interactionManager != null;
                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, (BlockHitResult)mc.crosshairTarget);
-                phase = 3;
+                phase = 5;
                 if (emptyWarningThrown)
                     toggle();
                 return;
             }
-            if (phase == 1) pDel--; // decr ticks
-            else if (phase == 2) cDel--;
+            if (phase == 1 || phase == 2) pDel--; // decr ticks
+            else if (phase == 3 || phase == 4) cDel--;
             else {
                 pDel = placeAnchorDel.get();
                 cDel = chargeAnchorDel.get();
