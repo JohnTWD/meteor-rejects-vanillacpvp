@@ -159,22 +159,24 @@ public class TweakedAutoTool extends Module {
             if (mainHand == null) return;
 
             boolean isECinHand = mainHand.getItem() == Items.END_CRYSTAL;
-            boolean isProhibitedInHand = mainHand.getItem() == Items.TOTEM_OF_UNDYING|| mainHand.getItem() == Items.BOW || mainHand.getItem() == Items.CROSSBOW;
+            boolean isProhibitedInHand = mainHand.getItem() == Items.TOTEM_OF_UNDYING|| mainHand.getItem() == Items.BOW || mainHand.getItem() == Items.CROSSBOW || mainHand.getItem() == Items.EXPERIENCE_BOTTLE;
             boolean isBlockInHand = mainHand.getItem() instanceof BlockItem;
 
             if (!isBlockInHand && !isProhibitedInHand && mc.options.useKey.isPressed() && mc.crosshairTarget != null && mc.crosshairTarget.getType() == HitResult.Type.BLOCK) {
                 BlockPos pos = ((BlockHitResult) mc.crosshairTarget).getBlockPos();
                 BlockState state = mc.world.getBlockState(pos);
+                BlockState upstate = mc.world.getBlockState(pos.up());
+                if (upstate.getBlock() == Blocks.AIR) {
+                    if ((state.getBlock() == Blocks.OBSIDIAN) || (state.getBlock() == Blocks.BEDROCK)) { // switch to crystal
+                        FindItemResult result = InvUtils.find(Items.END_CRYSTAL);
+                        if (!isECinHand && result.isHotbar()) {
+                            boolean wasHeld = result.isMainHand();
 
-                if ((state.getBlock() == Blocks.OBSIDIAN) || (state.getBlock() == Blocks.BEDROCK)) { // switch to crystal
-                    FindItemResult result = InvUtils.find(Items.END_CRYSTAL);
-                    if (!isECinHand && result.isHotbar()) {
-                        boolean wasHeld = result.isMainHand();
-
-                        if (!wasHeld)
-                            InvUtils.swap(result.slot(), false);
+                            if (!wasHeld)
+                                InvUtils.swap(result.slot(), false);
+                        }
+                        mc.options.useKey.setPressed(true);
                     }
-                    mc.options.useKey.setPressed(true);
                 }
             }
         }
@@ -302,7 +304,7 @@ public class TweakedAutoTool extends Module {
     }
 
     public static boolean isTool(Item item) {
-        return item instanceof ToolItem || item instanceof ShearsItem || item instanceof SwordItem;
+        return item instanceof AxeItem || item instanceof ShearsItem || item instanceof SwordItem || item instanceof TridentItem;
     }
     public static boolean isTool(ItemStack itemStack) {
         return isTool(itemStack.getItem());
