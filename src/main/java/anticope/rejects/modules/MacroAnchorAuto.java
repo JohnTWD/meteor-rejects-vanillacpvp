@@ -33,21 +33,12 @@ public class MacroAnchorAuto extends Module {
             .build()
     );
 
-    private final Setting<Integer> switchDel = sgGeneral.add(new IntSetting.Builder()
-            .name("switchdelay")
-            .description("how long in ticks to wait for switch between blocks")
-            .defaultValue(1)
-            .range(0,40)
-            .sliderRange(0,40)
-            .build()
-    );
-
     private final Setting<Integer> placeAnchorDel = sgGeneral.add(new IntSetting.Builder()
             .name("placeAnchorDelay")
             .description("how long in ticks to wait to place an anchor (If this)")
             .defaultValue(1)
-            .range(0,40)
-            .sliderRange(1,40)
+            .range(0,20)
+            .sliderRange(0,20)
             .build()
     );
 
@@ -55,17 +46,11 @@ public class MacroAnchorAuto extends Module {
             .name("placeAnchorDelay")
             .description("how long in ticks to charge anchor")
             .defaultValue(1)
-            .range(0,40)
-            .sliderRange(0,40)
+            .range(0,20)
+            .sliderRange(0,20)
             .build()
     );
 
-    private final Setting<Boolean> awaitBlockPlace = sgGeneral.add(new BoolSetting.Builder()
-            .name("immediatePlace")
-            .description("Whether to check for anchor to actually appear in world first (place/charge delays will still apply afterwards)")
-            .defaultValue(false)
-            .build()
-    );
     private int pDel = placeAnchorDel.get();
     private int cDel = chargeAnchorDel.get();
     private int phase = 0;
