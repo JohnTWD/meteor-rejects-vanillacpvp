@@ -18,6 +18,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 
 public class MacroAnchorAuto extends Module {
@@ -74,25 +75,27 @@ public class MacroAnchorAuto extends Module {
         if (mc.player == null) return;
         ItemStack mainHand = mc.player.getMainHandStack();
         if (mainHand == null) return;
-
         Item handItem = mainHand.getItem();
+        if (mc.crosshairTarget == null) return;
+        HitResult allcrosshair = mc.crosshairTarget;
 
-        if (mc.options.useKey.isPressed()) {
-            BlockHitResult asshair = (BlockHitResult)mc.crosshairTarget;
+        if (mc.options.useKey.isPressed() && allcrosshair.getType() == HitResult.Type.BLOCK) {
+            BlockHitResult asshair = (BlockHitResult)allcrosshair;
             assert mc.interactionManager != null;
 
-            if (mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR && handItem == Items.GLOWSTONE) {
-                phase = 2; return;
-            }
+            if (mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR
+                    && handItem == Items.GLOWSTONE
+                    && (phase != 3 || phase != 4)
+            ) phase = 4;
+
 
             if (phase == 0 && handItem == Items.RESPAWN_ANCHOR) {
-                assert mc.crosshairTarget != null;
-                BlockPos toPlaceOn = ((BlockHitResult) mc.crosshairTarget).getBlockPos();
+                BlockPos toPlaceOn = ((BlockHitResult) allcrosshair).getBlockPos();
                 assert mc.world != null;
                 if (mc.world.getBlockState(toPlaceOn).getBlock() != Blocks.RESPAWN_ANCHOR) {
-                    int sidex = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetX();
-                    int sidey = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetY();
-                    int sidez = ((BlockHitResult) mc.crosshairTarget).getSide().getOffsetZ();
+                    int sidex = (asshair).getSide().getOffsetX();
+                    int sidey = (asshair).getSide().getOffsetY();
+                    int sidez = (asshair).getSide().getOffsetZ();
 
                     toPlaceOn = toPlaceOn.add(sidex, sidey, sidez);
 
@@ -148,7 +151,7 @@ public class MacroAnchorAuto extends Module {
                 phase = 4;
             } else if (phase == 4 && cDel <= 0){
                 assert mc.interactionManager != null;
-                mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, (BlockHitResult)mc.crosshairTarget);
+                mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
                 phase = 5;
                 if (emptyWarningThrown)
                     toggle();
