@@ -3,7 +3,6 @@
 - [D]Tweaked Auto Tool
 - [O]Macro for Anchors
 - - Add grabbing from inv, 'smarter' delay
-- - Add rendering
 - [N]Manual Crystal
 - [N]Web burrow
 - [N]Tweaked No Entity Trace
