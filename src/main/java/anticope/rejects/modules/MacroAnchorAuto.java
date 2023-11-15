@@ -1,6 +1,8 @@
 package anticope.rejects.modules;
 
 import anticope.rejects.MeteorRejectsAddon;
+import meteordevelopment.meteorclient.events.render.Render3DEvent;
+import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.BoolSetting;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.IntSetting;
@@ -9,6 +11,7 @@ import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
+import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventPriority;
@@ -64,6 +67,7 @@ public class MacroAnchorAuto extends Module {
     private int cDel = chargeAnchorDel.get();
     private int sDel = changeSlotDel.get();
     private int phase = 0;
+    private BlockPos toRender;
     /* PHASES
      * 0 = Begin & Anchor placed & Switch to GS
      * 1 = Charge w/ GS
@@ -78,9 +82,32 @@ public class MacroAnchorAuto extends Module {
         phase = 0;
     }
 
+    @EventHandler
+    private void onRender(Render3DEvent event) {
+        if (!disablePlacing()) return; // this can also double as a check for whether we should render or not
+        if (mc.crosshairTarget == null) return;
+        HitResult allcrosshair = mc.crosshairTarget;
+        if (allcrosshair.getType() == HitResult.Type.BLOCK)
+        {
+            BlockHitResult asshair = (BlockHitResult) allcrosshair;
+            BlockPos renderMe = asshair.getBlockPos();
+            Color renderColoreds = Color.MAGENTA;
+            assert mc.world != null;
+            if (mc.world.getBlockState(renderMe).getBlock() != Blocks.RESPAWN_ANCHOR) {
+                int sidex = (((asshair))).getSide().getOffsetX();
+                int sidey = (((asshair))).getSide().getOffsetY();
+                int sidez = (((asshair))).getSide().getOffsetZ();
+                renderColoreds = Color.YELLOW;
+                renderMe = renderMe.add(sidex, sidey, sidez);
+            }
+            event.renderer.box(renderMe, new Color(0,0,0,0) , renderColoreds, ShapeMode.Lines, 0);
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGH)
     private void onTick(TickEvent.Post event) {
         if (mc.player == null) return;
+        if (mc.world == null) return;
         ItemStack mainHand = mc.player.getMainHandStack();
         if (mainHand == null) return;
         Item handItem = mainHand.getItem();
@@ -94,7 +121,6 @@ public class MacroAnchorAuto extends Module {
                 phase = 1;
                 sDel = 0;
             }
-
             if (phase == 0 && handItem == Items.RESPAWN_ANCHOR) { // place anchor
                 BlockPos toPlaceOn = asshair.getBlockPos();
                 assert mc.world != null;
