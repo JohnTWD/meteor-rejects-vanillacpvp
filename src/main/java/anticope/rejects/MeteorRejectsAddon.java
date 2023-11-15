@@ -29,7 +29,7 @@ public class MeteorRejectsAddon extends MeteorAddon {
 
         // Modules
         Modules modules = Modules.get();
-        modules.add(new ManualCrystal());
+        //modules.add(new ManualCrystal());
         modules.add(new TweakedAutoTool());
         modules.add(new MacroAnchorAuto());
 

@@ -76,6 +76,12 @@ public class MacroAnchorAuto extends Module {
         Item handItem = mainHand.getItem();
 
         if (mc.options.useKey.isPressed()) {
+            BlockHitResult asshair = (BlockHitResult)mc.crosshairTarget;
+            assert mc.interactionManager != null;
+
+            if (mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR && handItem == Items.GLOWSTONE) {
+                phase = 2; return;
+            }
 
             if (phase == 0 && handItem == Items.RESPAWN_ANCHOR) {
                 //placeBlok
@@ -96,17 +102,20 @@ public class MacroAnchorAuto extends Module {
             }
 
             if (phase == 1 && pDel <= 0) {
+                FindItemResult result = InvUtils.find(Items.GLOWSTONE);
+                if (!result.found()) {warning("completely out of GLOWSTONE! Disabling!"); toggle();}
+
                 if (!shouldUseInv.get()) {
-                    FindItemResult result = InvUtils.find(Items.GLOWSTONE);
                     if (result.isHotbar())
                         InvUtils.swap(result.slot(), false);
                     else {
-                        warning("No more GLOWSTONE! Disabling!");
+                        warning("GLOWSTONE not in HOTBAR! Disabling!");
                         toggle();
                     }
+                } else {
+                    InvUtils.move().from(result.slot()).to(mc.player.getInventory().selectedSlot);
                 }
-                BlockHitResult asshair = (BlockHitResult)mc.crosshairTarget;
-                assert mc.interactionManager != null;
+
 
                 if (mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR) {
                     mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
@@ -125,10 +134,16 @@ public class MacroAnchorAuto extends Module {
                     if (result.isHotbar())
                         InvUtils.swap(result.slot(), false);
                     else {
-                        warning("No more anchors!");
+                        warning("No more anchors in hotbar!");
                         emptyWarningThrown = true;
                         InvUtils.swap(mc.player.getInventory().selectedSlot + 1, false);
                     }
+                } else {
+                    if (!result.found()) {
+                        warning("No more anchors in hotbar!");
+                        emptyWarningThrown = true;
+                        InvUtils.swap(mc.player.getInventory().selectedSlot + 1, false);
+                    } else InvUtils.move().from(result.slot()).to(mc.player.getInventory().selectedSlot);
                 }
 
                 assert mc.interactionManager != null;
