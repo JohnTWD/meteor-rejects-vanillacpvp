@@ -50,14 +50,16 @@ public class MacroAnchorAuto extends Module {
             .sliderRange(0,20)
             .build()
     );
-
+    private boolean emptyWarningThrown = false;
     private int pDel = placeAnchorDel.get();
     private int cDel = chargeAnchorDel.get();
     private int phase = 0;
     /* PHASES
      * 0 = Begin & Anchor placed
-     * 1 = Charge w/ GS
-     * 2 = Switch back to anchor and activate
+     * 1 = Switch to GS
+     * 2 = Charge w/ GS
+     * 3 = Switch back to anchor
+     * 4 =  and activate
      */
 
     @Override
@@ -84,7 +86,6 @@ public class MacroAnchorAuto extends Module {
             }
 
             if (phase == 0 && handItem == Items.RESPAWN_ANCHOR) {
-                //placeBlok
                 assert mc.crosshairTarget != null;
                 BlockPos toPlaceOn = ((BlockHitResult) mc.crosshairTarget).getBlockPos();
                 assert mc.world != null;
@@ -101,7 +102,7 @@ public class MacroAnchorAuto extends Module {
                 return;
             }
 
-            if (phase == 1 && pDel <= 0) {
+            if (phase == 1 && pDel > 0) {
                 FindItemResult result = InvUtils.find(Items.GLOWSTONE);
                 if (!result.found()) {warning("completely out of GLOWSTONE! Disabling!"); toggle();}
 
@@ -115,22 +116,21 @@ public class MacroAnchorAuto extends Module {
                 } else {
                     InvUtils.move().from(result.slot()).to(mc.player.getInventory().selectedSlot);
                 }
-
-
+                phase = 2;
+            } else if (phase == 2 && pDel <= 0) {
                 if (mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR) {
                     mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
-                    phase = 2;
-                } else {
                     phase = 3;
+                } else {
+                    phase = 5;
                 }
                 return;
             }
 
-            if (phase == 2 && cDel <= 0) {
+            if (phase == 3 && cDel > 0) {
                 FindItemResult result = InvUtils.find(Items.RESPAWN_ANCHOR);
-                boolean emptyWarningThrown = false;
-
                 if (!shouldUseInv.get()) {
+
                     if (result.isHotbar())
                         InvUtils.swap(result.slot(), false);
                     else {
@@ -145,7 +145,8 @@ public class MacroAnchorAuto extends Module {
                         InvUtils.swap(mc.player.getInventory().selectedSlot + 1, false);
                     } else InvUtils.move().from(result.slot()).to(mc.player.getInventory().selectedSlot);
                 }
-
+                phase = 4;
+            } else if (phase == 4 && cDel <= 0){
                 assert mc.interactionManager != null;
                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, (BlockHitResult)mc.crosshairTarget);
                 phase = 3;
