@@ -135,7 +135,6 @@ public class MacroAnchorAuto extends Module {
             boolean anchorExistsAtPtr = mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR;
 
             if (anchorExistsAtPtr && phase == 0) {// early w/o placing
-                info("anchor found here, phase 1 begin");
                 phase = 1;
             }
 
@@ -151,8 +150,6 @@ public class MacroAnchorAuto extends Module {
 
                     BlockUtils.place(toPlaceOn, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                 }
-                info("attempt place");
-                //phase = 1;
                 return;
             }
 
