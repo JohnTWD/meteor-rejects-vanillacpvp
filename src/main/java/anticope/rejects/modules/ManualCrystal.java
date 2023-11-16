@@ -8,6 +8,7 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
+import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
@@ -222,6 +223,7 @@ public class ManualCrystal extends Module {
         // attack
         Entity targetCrystal = doesBlockHaveEntOnTop();
         if (targetCrystal == null) return;
+        if (noWallCrystal.get() && !PlayerUtils.canSeeEntity(targetCrystal)) return;
         attack(targetCrystal);
     }
 
