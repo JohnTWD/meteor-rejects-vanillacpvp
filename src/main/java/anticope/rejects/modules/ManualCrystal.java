@@ -77,13 +77,13 @@ public class ManualCrystal extends Module {
             .build()
     );
     private int origSlot;
-    private int pDel = 0;
-    private int bDel = 0;
+    private int pDel = placeDelay.get();
+    private int bDel = breakDel.get();
     private final List<Entity> crystalEntList = new ArrayList<>();
 
     void resetPhase() {
-        pDel = 0;
-        bDel = 0;
+        pDel = placeDelay.get();
+        bDel = breakDel.get();
         crystalEntList.clear();
     }
 
@@ -124,7 +124,7 @@ public class ManualCrystal extends Module {
             if (handItem == Items.END_CRYSTAL) {
                 crystalListFilter();
 
-                if (pDel >= placeDelay.get()) {
+                if (pDel <= 0) {
                     if (allcrosshair.getType() == HitResult.Type.BLOCK) {
                         BlockHitResult asshair = (BlockHitResult) allcrosshair;
                         BlockPos ptrPos = asshair.getBlockPos();
@@ -134,16 +134,20 @@ public class ManualCrystal extends Module {
                             BlockUtils.place(ptrPos, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                         }
                     }
-                    pDel = 0;
-                } else pDel++;
+                    pDel = placeDelay.get();
+                }
 
-                if (bDel >= breakDel.get()) {
+                if (bDel <= 0) {
+                    info("bDel");
                     if (allcrosshair.getType() == HitResult.Type.ENTITY) { // looking at crystal, KILL IT!!!
                         EntityHitResult enthr = (EntityHitResult) allcrosshair;
                         if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
-                    } else noCrystalInteract();
-                    bDel = 0;
-                } else bDel++;
+                    } else {noCrystalInteract(); info("nci");}
+                    bDel = breakDel.get();
+                }
+
+                pDel--; bDel--;
+                return;
             }
         }
         resetPhase();
