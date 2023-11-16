@@ -130,12 +130,11 @@ public class ManualCrystal extends Module {
                         BlockPos ptrPos = asshair.getBlockPos();
                         if (canPlace(ptrPos)) {
                             if (rotateSetting.get())
-                                Rotations.rotate(Rotations.getYaw(ptrPos), Rotations.getPitch(ptrPos));
-                            BlockUtils.place(asshair.getBlockPos(), Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+                                Rotations.rotate(mc.player.getHeadYaw(), Rotations.getPitch(ptrPos));
+                            BlockUtils.place(ptrPos, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                         }
                     }
                     pDel = 0;
-                    return;
                 } else pDel++;
 
                 if (bDel >= breakDel.get()) {
@@ -228,9 +227,11 @@ public class ManualCrystal extends Module {
         // attack
         Entity targetCrystal = doesBlockHaveEntOnTop();
         if (targetCrystal == null) return;
+        if (mc.player == null) return;
         if (noWallCrystal.get() && !PlayerUtils.canSeeEntity(targetCrystal)) return;
-        if (rotateSetting.get())
-            Rotations.rotate(Rotations.getYaw(targetCrystal), Rotations.getPitch(targetCrystal, Target.Feet));
+        if (rotateSetting.get()) {
+            Rotations.rotate(mc.player.getHeadYaw(), Rotations.getPitch(targetCrystal, Target.Feet));
+        }
         attack(targetCrystal);
     }
 
