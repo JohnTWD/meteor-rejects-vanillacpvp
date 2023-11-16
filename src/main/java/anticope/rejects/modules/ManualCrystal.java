@@ -50,7 +50,6 @@ public class ManualCrystal extends Module {
             .sliderRange(0,20)
             .build()
     );
-/*
     private final Setting<Integer> breakDel = sgGeneral.add(new IntSetting.Builder()
             .name("breakDelay")
             .description("how long in ticks to wait to break crystals")
@@ -58,7 +57,7 @@ public class ManualCrystal extends Module {
             .range(0,20)
             .sliderRange(0,20)
             .build()
-    );*/
+    );
     private final Setting<Boolean> rotateSetting = sgGeneral.add(new BoolSetting.Builder()
             .name("breakRotateSetting")
             .description("whether or not should rotate to break a crystal")
@@ -66,9 +65,13 @@ public class ManualCrystal extends Module {
             .build()
     );
     private int pDel = 0;
+    private int bDel = 0;
+    private boolean toggleBreak = false;
+    Entity targetCrystal;
 
     void resetPhase() {
         pDel = 0;
+        bDel = 0;
     }
 
     @Override
@@ -92,18 +95,26 @@ public class ManualCrystal extends Module {
                 if (pDel >= placeDelay.get()) {
                     if (allcrosshair.getType() == HitResult.Type.BLOCK) {
                         BlockHitResult asshair = (BlockHitResult) allcrosshair;
-                        if (canPlace(asshair.getBlockPos())) {
+                        BlockPos ptrPos = asshair.getBlockPos();
+                        if (canPlace(ptrPos)) {
                             BlockUtils.place(asshair.getBlockPos(), Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
-                            noCrystalInteract(asshair.getBlockPos());
-                            info("attempting place");
                         }
                     } else if (allcrosshair.getType() == HitResult.Type.ENTITY) {
-                        info("looking at and breaking");
                         EntityHitResult enthr = (EntityHitResult) allcrosshair;
                         if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
                     }
-                    resetPhase();
+                    pDel = 0;
                 } else pDel++;
+
+                if (bDel >= breakDel.get()) {
+                    if (allcrosshair.getType() == HitResult.Type.BLOCK) {
+                        noCrystalInteract();
+                    } else if (allcrosshair.getType() == HitResult.Type.ENTITY) {
+                        EntityHitResult enthr = (EntityHitResult) allcrosshair;
+                        if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
+                    }
+                    bDel = 0;
+                } else bDel++;
             }
         }
     }
@@ -121,16 +132,16 @@ public class ManualCrystal extends Module {
         HitResult allcrosshair = mc.crosshairTarget;
         if ((allcrosshair.getType() == HitResult.Type.BLOCK)
                 && (((BlockHitResult)allcrosshair).getBlockPos().equals(event.entity.getBlockPos().down()))) {
-            info("attempting attack");
-            attack(event.entity);
+            targetCrystal = event.entity;
         }
     }
 
-    private void noCrystalInteract(BlockPos basePos) {
-        // look for crystals
-        // find crystal at basePos.up
+    private void noCrystalInteract() {
+        // look for crystals & // find crystal at basePos.up- Done in onEntAdd
         // rotate if necessary
         // attack
+        if (targetCrystal == null) return;
+        attack(targetCrystal);
     }
 
     
