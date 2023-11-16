@@ -15,6 +15,7 @@ import meteordevelopment.orbit.EventPriority;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -58,22 +59,16 @@ public class ManualCrystal extends Module {
             .sliderRange(0,20)
             .build()
     );*/
-
-    private enum RotateType{
-        NoRotate,
-        DoRotate
-    }
-
-    private final Setting<RotateType> rotateSetting = sgGeneral.add(new EnumSetting.Builder<RotateType>()
+    private final Setting<Boolean> rotateSetting = sgGeneral.add(new BoolSetting.Builder()
             .name("breakRotateSetting")
             .description("whether or not should rotate to break a crystal")
-            .defaultValue(RotateType.NoRotate)
+            .defaultValue(false)
             .build()
     );
-    private int pDel = placeDelay.get();
+    private int pDel = 0;
 
     void resetPhase() {
-        pDel = placeDelay.get();
+        pDel = 0;
     }
 
     @Override
@@ -94,18 +89,28 @@ public class ManualCrystal extends Module {
 
         if (mc.options.useKey.isPressed()) {
             if (handItem == Items.END_CRYSTAL) {
-                if (allcrosshair.getType() == HitResult.Type.BLOCK) {
-                    BlockHitResult asshair = (BlockHitResult) allcrosshair;
-                    if (canPlace(asshair.getBlockPos())) {
-                        BlockUtils.place(asshair.getBlockPos(), Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
-                        noCrystalInteract(asshair.getBlockPos());
+                if (pDel >= placeDelay.get()) {
+                    if (allcrosshair.getType() == HitResult.Type.BLOCK) {
+                        BlockHitResult asshair = (BlockHitResult) allcrosshair;
+                        if (canPlace(asshair.getBlockPos())) {
+                            BlockUtils.place(asshair.getBlockPos(), Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+                            noCrystalInteract(asshair.getBlockPos());
+                            info("attempting place");
+                        }
+                    } else if (allcrosshair.getType() == HitResult.Type.ENTITY) {
+                        info("looking at and breaking");
+                        EntityHitResult enthr = (EntityHitResult) allcrosshair;
+                        if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
                     }
-                } else if (allcrosshair.getType() == HitResult.Type.ENTITY) {
-                    EntityHitResult enthr = (EntityHitResult) allcrosshair;
-                    if (enthr.getEntity() instanceof EndCrystalEntity) mc.player.attack(enthr.getEntity());
-                }
+                    resetPhase();
+                } else pDel++;
             }
         }
+    }
+
+    private void attack(Entity target) {
+        mc.interactionManager.attackEntity(mc.player, target);
+        mc.player.swingHand(Hand.MAIN_HAND);
     }
 
     @EventHandler
@@ -115,8 +120,9 @@ public class ManualCrystal extends Module {
 
         HitResult allcrosshair = mc.crosshairTarget;
         if ((allcrosshair.getType() == HitResult.Type.BLOCK)
-                && (((BlockHitResult)allcrosshair).getBlockPos().up() == event.entity.getBlockPos())) {
-            mc.player.attack(event.entity);
+                && (((BlockHitResult)allcrosshair).getBlockPos().equals(event.entity.getBlockPos().down()))) {
+            info("attempting attack");
+            attack(event.entity);
         }
     }
 
@@ -127,20 +133,10 @@ public class ManualCrystal extends Module {
         // attack
     }
 
-    private boolean isBehindWall(BlockPos loc) {
-        RaycastContext raycastContext = null;
-        ((IRaycastContext) raycastContext).set(mc.player.getEyePos(), loc.toCenterPos(), RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, mc.player);
-        BlockHitResult result = mc.world.raycast(raycastContext);
-        if (result == null || !result.getBlockPos().equals(loc)) // Is behind wall
-            return true;
-        return false;
-    }
     
     private boolean canPlace(BlockPos loc) {
         if (mc.player == null) return false;
         BlockState upstate = mc.world.getBlockState(loc.up());
-        if (noWallCrystal.get() && isBehindWall(loc))
-            return false;
         BlockState state = mc.world.getBlockState(loc);
 
         return ((state.getBlock() == Blocks.OBSIDIAN || state.getBlock() == Blocks.BEDROCK) && upstate.getBlock() == Blocks.AIR);
