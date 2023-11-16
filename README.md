@@ -1,7 +1,9 @@
 # Hello sars this is my fork for meteor rejects
 ## TODO list: [D]one, [O]ngoing [N]ext
 - [D]Tweaked Auto Tool
-- [D]Macro for Anchors
+- [O]Macro for Anchors
+- - Make this less retarded on high ping servers
+- - - TODO: Find out why
 - [O]Manual Crystal
 - [N]Web burrow
 - [N]Tweaked No Entity Trace
