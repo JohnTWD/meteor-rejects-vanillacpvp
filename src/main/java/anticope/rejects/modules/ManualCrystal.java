@@ -6,9 +6,11 @@ import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.systems.modules.Module;
+import meteordevelopment.meteorclient.utils.entity.Target;
 import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
+import meteordevelopment.meteorclient.utils.player.Rotations;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
@@ -224,6 +226,10 @@ public class ManualCrystal extends Module {
         Entity targetCrystal = doesBlockHaveEntOnTop();
         if (targetCrystal == null) return;
         if (noWallCrystal.get() && !PlayerUtils.canSeeEntity(targetCrystal)) return;
+
+        if (rotateSetting.get())
+            Rotations.rotate(Rotations.getYaw(targetCrystal), Rotations.getPitch(targetCrystal));
+
         attack(targetCrystal);
     }
 
