@@ -143,7 +143,6 @@ public class ManualCrystal extends Module {
                         if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
                     } else noCrystalInteract();
                     bDel = 0;
-                    return;
                 } else bDel++;
             }
         }
