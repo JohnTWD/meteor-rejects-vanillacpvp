@@ -67,11 +67,12 @@ public class ManualCrystal extends Module {
     private int pDel = 0;
     private int bDel = 0;
     private boolean toggleBreak = false;
-    Entity targetCrystal;
+    Entity targetCrystal = null;
 
     void resetPhase() {
         pDel = 0;
         bDel = 0;
+        targetCrystal = null;
     }
 
     @Override
@@ -96,7 +97,7 @@ public class ManualCrystal extends Module {
                     if (allcrosshair.getType() == HitResult.Type.BLOCK) {
                         BlockHitResult asshair = (BlockHitResult) allcrosshair;
                         BlockPos ptrPos = asshair.getBlockPos();
-                        if (canPlace(ptrPos)) {
+                        if (canPlace(ptrPos)) {;
                             BlockUtils.place(asshair.getBlockPos(), Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                         }
                     } else if (allcrosshair.getType() == HitResult.Type.ENTITY) {
@@ -113,6 +114,7 @@ public class ManualCrystal extends Module {
                         EntityHitResult enthr = (EntityHitResult) allcrosshair;
                         if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
                     }
+                    targetCrystal = null;
                     bDel = 0;
                 } else bDel++;
             }
