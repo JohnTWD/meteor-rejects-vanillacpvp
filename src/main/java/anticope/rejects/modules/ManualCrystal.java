@@ -2,17 +2,17 @@ package anticope.rejects.modules;
 
 import anticope.rejects.MeteorRejectsAddon;
 import meteordevelopment.meteorclient.events.entity.EntityAddedEvent;
-import meteordevelopment.meteorclient.mixininterface.IRaycastContext;
+import meteordevelopment.meteorclient.events.render.Render3DEvent;
+import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
-import meteordevelopment.meteorclient.utils.player.PlayerUtils;
+import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventPriority;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -25,8 +25,6 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.RaycastContext;
 
 public class ManualCrystal extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -143,6 +141,22 @@ public class ManualCrystal extends Module {
                     bDel = 0;
                 } else bDel++;
             }
+        }
+    }
+
+    @EventHandler
+    private void onRender(Render3DEvent event) {
+        if (mc.crosshairTarget == null) return;
+        HitResult allcrosshair = mc.crosshairTarget;
+        if (allcrosshair.getType() == HitResult.Type.BLOCK) {
+            BlockHitResult asshair = (BlockHitResult) allcrosshair;
+            BlockPos ptrPos = asshair.getBlockPos();
+            if (canPlace(ptrPos)) {
+                event.renderer.box(ptrPos, new Color(0,0,0,0) , Color.MAGENTA, ShapeMode.Lines, 0);
+            }
+        } else if ( allcrosshair.getType() == HitResult.Type.ENTITY) {
+            EntityHitResult enthr = (EntityHitResult) allcrosshair;
+            if (enthr.getEntity() instanceof EndCrystalEntity) event.renderer.;
         }
     }
 
