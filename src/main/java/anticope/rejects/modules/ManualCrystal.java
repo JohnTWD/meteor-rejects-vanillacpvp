@@ -103,6 +103,19 @@ public class ManualCrystal extends Module {
 
         Item handItem = mainHand.getItem();
 
+        if (forceSwitch.get() && handItem != Items.END_CRYSTAL){
+            FindItemResult result = InvUtils.find(Items.END_CRYSTAL);
+
+            if (result.found() && result.isHotbar()) {
+                origSlot = mc.player.getInventory().selectedSlot;
+                InvUtils.swap(result.slot(), false);
+            }
+            else {
+                warning("Crystals not in hotbar, disabling!");
+                toggle();
+            }
+        }
+
         if (mc.options.useKey.isPressed()) {
             if (handItem == Items.END_CRYSTAL) {
                 if (pDel >= placeDelay.get()) {
@@ -129,17 +142,6 @@ public class ManualCrystal extends Module {
                     targetCrystal = null;
                     bDel = 0;
                 } else bDel++;
-            } else if (forceSwitch.get()){
-                FindItemResult result = InvUtils.find(Items.GLOWSTONE);
-
-                if (result.found() && result.isHotbar()) {
-                    origSlot = mc.player.getInventory().selectedSlot;
-                    InvUtils.swap(result.slot(), false);
-                }
-                else {
-                    warning("Crystals not in hotbar, disabling!");
-                    toggle();
-                }
             }
         }
     }
