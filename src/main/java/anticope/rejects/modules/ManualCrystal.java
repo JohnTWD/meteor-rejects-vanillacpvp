@@ -42,6 +42,13 @@ public class ManualCrystal extends Module {
             .build()
     );
 
+
+    private final Setting<Boolean> forceSwitch = sgGeneral.add(new BoolSetting.Builder()
+            .name("switch2Crystal")
+            .description("Exactly what it says...")
+            .defaultValue(false)
+            .build()
+    );
     private final Setting<Integer> placeDelay = sgGeneral.add(new IntSetting.Builder()
             .name("placeDelay")
             .description("how long in ticks to wait to place a crystal")
@@ -64,6 +71,7 @@ public class ManualCrystal extends Module {
             .defaultValue(false)
             .build()
     );
+    private int origSlot = 0;
     private int pDel = 0;
     private int bDel = 0;
     private boolean toggleBreak = false;
@@ -78,6 +86,10 @@ public class ManualCrystal extends Module {
     @Override
     public void onActivate() {
         resetPhase();
+    }
+    @Override
+    public void onDeactivate() {
+        if (forceSwitch.get()) InvUtils.swap(origSlot, false);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -117,6 +129,17 @@ public class ManualCrystal extends Module {
                     targetCrystal = null;
                     bDel = 0;
                 } else bDel++;
+            } else if (forceSwitch.get()){
+                FindItemResult result = InvUtils.find(Items.GLOWSTONE);
+
+                if (result.found() && result.isHotbar()) {
+                    origSlot = mc.player.getInventory().selectedSlot;
+                    InvUtils.swap(result.slot(), false);
+                }
+                else {
+                    warning("Crystals not in hotbar, disabling!");
+                    toggle();
+                }
             }
         }
     }
