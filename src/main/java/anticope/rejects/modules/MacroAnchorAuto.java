@@ -39,7 +39,16 @@ public class MacroAnchorAuto extends Module {
 
     private final Setting<Integer> placeAnchorDel = sgGeneral.add(new IntSetting.Builder()
             .name("placeAnchorDelay")
-            .description("how long in ticks to wait to place an anchor (If this)")
+            .description("how long in ticks to wait to place an anchor")
+            .defaultValue(1)
+            .range(0,20)
+            .sliderRange(0,20)
+            .build()
+    );
+
+    private final Setting<Integer> breakAnchorDel = sgGeneral.add(new IntSetting.Builder()
+            .name("breakeAnchorDelay")
+            .description("how long in ticks to wait to activate anchors")
             .defaultValue(1)
             .range(0,20)
             .sliderRange(0,20)
@@ -66,20 +75,26 @@ public class MacroAnchorAuto extends Module {
     private int pDel = placeAnchorDel.get();
     private int cDel = chargeAnchorDel.get();
     private int sDel = changeSlotDel.get();
+    private int bDel = breakAnchorDel.get();
     private int phase = 0;
-    private BlockPos toRender;
     /* PHASES
      * 0 = Begin & Anchor placed & Switch to GS
      * 1 = Charge w/ GS
      * 2 = Switch back to anchor
      * 3 =  and activate
      */
+    private void resetPhase() {
+        pDel = placeAnchorDel.get();
+        cDel = chargeAnchorDel.get();
+        sDel = changeSlotDel.get();
+        bDel = breakAnchorDel.get();
+        phase = 0;
+        emptyWarningThrown = false;
+    }
 
     @Override
     public void onActivate() {
-        pDel = 0;
-        cDel = 0;
-        phase = 0;
+        resetPhase();
     }
 
     @EventHandler
@@ -118,7 +133,6 @@ public class MacroAnchorAuto extends Module {
             BlockHitResult asshair = (BlockHitResult)allcrosshair;
             assert mc.interactionManager != null;
             if (mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR && (phase == 0)) {
-                info("skipped phase 0");
                 phase = 1;
                 sDel = 0;
             }
@@ -134,7 +148,6 @@ public class MacroAnchorAuto extends Module {
 
                     BlockUtils.place(toPlaceOn, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                 }
-                info("placed anchor");
                 phase = 1;
                 return;
             }
@@ -153,7 +166,6 @@ public class MacroAnchorAuto extends Module {
                 } else {
                     InvUtils.move().from(result.slot()).to(mc.player.getInventory().selectedSlot);
                 }
-                info("Swapped to glowstone");
                 phase = 2;
                 return;
             }
@@ -162,9 +174,8 @@ public class MacroAnchorAuto extends Module {
                     mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
                     phase = 3;
                     sDel = changeSlotDel.get();
-                    info("Charged anchor");
                 } else {
-                    phase = 5;
+                    phase = 6;
                 }
                 return;
             }
@@ -185,33 +196,23 @@ public class MacroAnchorAuto extends Module {
                         InvUtils.swap(mc.player.getInventory().selectedSlot + 1, false);
                     } else InvUtils.move().from(result.slot()).to(mc.player.getInventory().selectedSlot);
                 }
-                info("swapped to anchor");
                 phase = 4;
                 return;
             }
-            if (phase == 4 && pDel <= 0){ // explode
+            if (phase == 4 && bDel <= 0){ // explode
                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
                 phase = 5;
                 if (emptyWarningThrown)
                     toggle();
-                info("exploded");
                 return;
             }
-            if (phase == 4) pDel--; // decr ticks
+
+            if (phase == 1 || phase == 3) sDel--;
             else if (phase == 2) cDel--;
-            else if (phase == 1 || phase == 3) sDel--;
-            else {
-                pDel = placeAnchorDel.get();
-                cDel = chargeAnchorDel.get();
-                sDel = changeSlotDel.get();
-                phase = 0;
-            }
-        } else {
-            pDel = placeAnchorDel.get();
-            cDel = chargeAnchorDel.get();
-            sDel = changeSlotDel.get();
-            phase = 0;
-        }
+            else if (phase == 4) bDel--; // decr ticks
+            else if (phase == 5 && pDel > 0) pDel--;
+            else resetPhase();
+        } else resetPhase();
     }
 
     public Boolean disablePlacing() {
