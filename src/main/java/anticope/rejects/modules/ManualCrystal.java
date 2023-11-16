@@ -138,11 +138,10 @@ public class ManualCrystal extends Module {
                 }
 
                 if (bDel <= 0) {
-                    info("bDel");
                     if (allcrosshair.getType() == HitResult.Type.ENTITY) { // looking at crystal, KILL IT!!!
                         EntityHitResult enthr = (EntityHitResult) allcrosshair;
                         if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
-                    } else {noCrystalInteract(); info("nci");}
+                    } else noCrystalInteract();
                     bDel = breakDel.get();
                 }
 
