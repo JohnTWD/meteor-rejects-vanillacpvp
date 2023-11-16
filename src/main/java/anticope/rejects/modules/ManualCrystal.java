@@ -158,7 +158,8 @@ public class ManualCrystal extends Module {
                 event.renderer.box(ptrPos, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
             }
         }
-        if (oldCrystalTarg != null && oldCrystalTarg.isAlive()) {
+        if (oldCrystalTarg == null) return;
+        if (oldCrystalTarg.isAlive()) {
             double x = MathHelper.lerp(event.tickDelta, oldCrystalTarg.lastRenderX, oldCrystalTarg.getX()) - oldCrystalTarg.getX();
             double y = MathHelper.lerp(event.tickDelta, oldCrystalTarg.lastRenderY, oldCrystalTarg.getY()) - oldCrystalTarg.getY();
             double z = MathHelper.lerp(event.tickDelta, oldCrystalTarg.lastRenderZ, oldCrystalTarg.getZ()) - oldCrystalTarg.getZ();
