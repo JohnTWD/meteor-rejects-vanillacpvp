@@ -25,6 +25,8 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.MathHelper;
 
 public class ManualCrystal extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -69,16 +71,18 @@ public class ManualCrystal extends Module {
             .defaultValue(false)
             .build()
     );
-    private int origSlot = 0;
+    private int origSlot;
     private int pDel = 0;
     private int bDel = 0;
     private boolean toggleBreak = false;
     Entity targetCrystal = null;
+    Entity oldCrystalTarg = null;
 
     void resetPhase() {
         pDel = 0;
         bDel = 0;
         targetCrystal = null;
+        oldCrystalTarg = null;
     }
 
     @Override
@@ -103,11 +107,10 @@ public class ManualCrystal extends Module {
 
         if (forceSwitch.get() && handItem != Items.END_CRYSTAL){
             FindItemResult result = InvUtils.find(Items.END_CRYSTAL);
+            origSlot = mc.player.getInventory().selectedSlot;
 
-            if (result.found() && result.isHotbar()) {
-                origSlot = mc.player.getInventory().selectedSlot;
+            if (result.found() && result.isHotbar())
                 InvUtils.swap(result.slot(), false);
-            }
             else {
                 warning("Crystals not in hotbar, disabling!");
                 toggle();
@@ -152,13 +155,19 @@ public class ManualCrystal extends Module {
             BlockHitResult asshair = (BlockHitResult) allcrosshair;
             BlockPos ptrPos = asshair.getBlockPos();
             if (canPlace(ptrPos)) {
-                event.renderer.box(ptrPos, new Color(0,0,0,0) , Color.MAGENTA, ShapeMode.Lines, 0);
+                event.renderer.box(ptrPos, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
             }
-        } else if ( allcrosshair.getType() == HitResult.Type.ENTITY) {
-            EntityHitResult enthr = (EntityHitResult) allcrosshair;
-            if (enthr.getEntity() instanceof EndCrystalEntity) event.renderer.;
+        }
+        if (oldCrystalTarg.isAlive()) {
+            double x = MathHelper.lerp(event.tickDelta, oldCrystalTarg.lastRenderX, oldCrystalTarg.getX()) - oldCrystalTarg.getX();
+            double y = MathHelper.lerp(event.tickDelta, oldCrystalTarg.lastRenderY, oldCrystalTarg.getY()) - oldCrystalTarg.getY();
+            double z = MathHelper.lerp(event.tickDelta, oldCrystalTarg.lastRenderZ, oldCrystalTarg.getZ()) - oldCrystalTarg.getZ();
+
+            Box box = oldCrystalTarg.getBoundingBox();
+            event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, new Color(0, 0, 0, 0), Color.CYAN, ShapeMode.Lines, 0);
         }
     }
+
 
     private void attack(Entity target) {
         mc.interactionManager.attackEntity(mc.player, target);
@@ -174,6 +183,7 @@ public class ManualCrystal extends Module {
         if ((allcrosshair.getType() == HitResult.Type.BLOCK)
                 && (((BlockHitResult)allcrosshair).getBlockPos().equals(event.entity.getBlockPos().down()))) {
             targetCrystal = event.entity;
+            oldCrystalTarg = targetCrystal;
         }
     }
 
