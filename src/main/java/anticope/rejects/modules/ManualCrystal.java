@@ -136,13 +136,21 @@ public class ManualCrystal extends Module {
                     }
                     pDel = placeDelay.get();
                 }
-
                 if (bDel <= 0) {
                     if (allcrosshair.getType() == HitResult.Type.ENTITY) { // looking at crystal, KILL IT!!!
                         EntityHitResult enthr = (EntityHitResult) allcrosshair;
                         if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
                     } else noCrystalInteract();
                     bDel = breakDel.get();
+                } else {
+                    if (rotateSetting.get()) {
+                        Entity crysEnt = doesBlockHaveEntOnTop();
+                        if (crysEnt != null) {
+                            float entPitch = (float) Rotations.getPitch(crysEnt, Target.Feet);
+                            float rotDiv = getRotDiv(bDel, entPitch);
+                            Rotations.rotate(mc.player.getHeadYaw(), entPitch + rotDiv);
+                        }
+                    }
                 }
 
                 pDel--; bDel--;
@@ -185,6 +193,16 @@ public class ManualCrystal extends Module {
             Box box = targetCrystal.getBoundingBox();
             event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, new Color(0, 0, 0, 0), Color.CYAN, ShapeMode.Lines, 0);
         }
+    }
+
+    private float getPitchDelta(float target) {
+        assert mc.player != null;
+        return mc.player.getHeadYaw() - target;
+    }
+
+    private float getRotDiv(int div, float target) {
+        if (div != 0) div = 1;
+        return getPitchDelta(target) / div;
     }
 
     private void attack(Entity target) {
