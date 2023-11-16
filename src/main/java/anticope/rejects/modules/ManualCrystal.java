@@ -135,6 +135,7 @@ public class ManualCrystal extends Module {
                         }
                     }
                     pDel = 0;
+                    return;
                 } else pDel++;
 
                 if (bDel >= breakDel.get()) {
@@ -143,8 +144,8 @@ public class ManualCrystal extends Module {
                         if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
                     } else noCrystalInteract();
                     bDel = 0;
+                    return;
                 } else bDel++;
-                return;
             }
         }
         resetPhase();
