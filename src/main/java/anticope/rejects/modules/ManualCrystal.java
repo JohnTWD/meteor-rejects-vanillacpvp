@@ -77,9 +77,13 @@ public class ManualCrystal extends Module {
 
         if (mc.options.useKey.isPressed()) {
             if (handItem == Items.END_CRYSTAL) {
-                BlockHitResult asshair = (BlockHitResult) allcrosshair;
-                if (canPlace(asshair.getBlockPos())) {
-                    BlockUtils.place(toPlaceOn, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+                if (allcrosshair.getType() == HitResult.Type.BLOCK) {
+                    BlockHitResult asshair = (BlockHitResult) allcrosshair;
+                    if (canPlace(asshair.getBlockPos())) {
+                        BlockUtils.place(asshair.getBlockPos(), Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+                    }
+                } ekwddfhnweihwihf todo {
+
                 }
             }
         }
