@@ -1,7 +1,6 @@
 package anticope.rejects.modules;
 
 import anticope.rejects.MeteorRejectsAddon;
-import meteordevelopment.meteorclient.events.entity.EntityAddedEvent;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.*;
@@ -27,6 +26,9 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ManualCrystal extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -74,15 +76,12 @@ public class ManualCrystal extends Module {
     private int origSlot;
     private int pDel = 0;
     private int bDel = 0;
-    private boolean toggleBreak = false;
-    Entity targetCrystal = null;
-    Entity oldCrystalTarg = null;
+    private final List<Entity> crystalEntList = new ArrayList<>();
 
     void resetPhase() {
         pDel = 0;
         bDel = 0;
-        targetCrystal = null;
-        oldCrystalTarg = null;
+        crystalEntList.clear();
     }
 
     @Override
@@ -92,6 +91,7 @@ public class ManualCrystal extends Module {
     @Override
     public void onDeactivate() {
         if (forceSwitch.get()) InvUtils.swap(origSlot, false);
+        resetPhase();
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -119,72 +119,100 @@ public class ManualCrystal extends Module {
 
         if (mc.options.useKey.isPressed()) {
             if (handItem == Items.END_CRYSTAL) {
+                crystalListFilter();
+
                 if (pDel >= placeDelay.get()) {
                     if (allcrosshair.getType() == HitResult.Type.BLOCK) {
                         BlockHitResult asshair = (BlockHitResult) allcrosshair;
                         BlockPos ptrPos = asshair.getBlockPos();
-                        if (canPlace(ptrPos)) {;
+                        if (canPlace(ptrPos)) {
                             BlockUtils.place(asshair.getBlockPos(), Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                         }
-                    } else if (allcrosshair.getType() == HitResult.Type.ENTITY) {
-                        EntityHitResult enthr = (EntityHitResult) allcrosshair;
-                        if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
                     }
                     pDel = 0;
                 } else pDel++;
 
                 if (bDel >= breakDel.get()) {
-                    if (allcrosshair.getType() == HitResult.Type.BLOCK) {
-                        noCrystalInteract();
-                    } else if (allcrosshair.getType() == HitResult.Type.ENTITY) {
+                    if (allcrosshair.getType() == HitResult.Type.ENTITY) { // looking at crystal, KILL IT!!!
                         EntityHitResult enthr = (EntityHitResult) allcrosshair;
                         if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
-                    }
-                    targetCrystal = null;
+                    } else noCrystalInteract();
                     bDel = 0;
                 } else bDel++;
+                return;
             }
         }
+        resetPhase();
     }
 
     @EventHandler
     private void onRender(Render3DEvent event) {
         if (mc.crosshairTarget == null) return;
         HitResult allcrosshair = mc.crosshairTarget;
+        BlockPos ptrPos = null;
         if (allcrosshair.getType() == HitResult.Type.BLOCK) {
             BlockHitResult asshair = (BlockHitResult) allcrosshair;
-            BlockPos ptrPos = asshair.getBlockPos();
-            if (canPlace(ptrPos)) {
+            ptrPos = asshair.getBlockPos();
+            if (canPlace(ptrPos))
                 event.renderer.box(ptrPos, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
+
+        } else if (allcrosshair.getType() == HitResult.Type.ENTITY) {
+            EntityHitResult enthr = (EntityHitResult) allcrosshair;
+            if (enthr.getEntity() instanceof EndCrystalEntity) {
+                double x = MathHelper.lerp(event.tickDelta, enthr.getEntity().lastRenderX, enthr.getEntity().getX()) - enthr.getEntity().getX();
+                double y = MathHelper.lerp(event.tickDelta, enthr.getEntity().lastRenderY, enthr.getEntity().getY()) - enthr.getEntity().getY();
+                double z = MathHelper.lerp(event.tickDelta, enthr.getEntity().lastRenderZ, enthr.getEntity().getZ()) - enthr.getEntity().getZ();
+
+                Box box = enthr.getEntity().getBoundingBox();
+                event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, new Color(0, 0, 0, 0), Color.CYAN, ShapeMode.Lines, 0);
             }
         }
-        if (oldCrystalTarg == null) return;
-        if (oldCrystalTarg.isAlive()) {
-            double x = MathHelper.lerp(event.tickDelta, oldCrystalTarg.lastRenderX, oldCrystalTarg.getX()) - oldCrystalTarg.getX();
-            double y = MathHelper.lerp(event.tickDelta, oldCrystalTarg.lastRenderY, oldCrystalTarg.getY()) - oldCrystalTarg.getY();
-            double z = MathHelper.lerp(event.tickDelta, oldCrystalTarg.lastRenderZ, oldCrystalTarg.getZ()) - oldCrystalTarg.getZ();
+        Entity targetCrystal = doesBlockHaveEntOnTop();
+        if (targetCrystal == null || ptrPos == null) return;
 
-            Box box = oldCrystalTarg.getBoundingBox();
+        if (targetCrystal.isAlive()  && ptrPos.equals(targetCrystal.getBlockPos().down())) {
+            double x = MathHelper.lerp(event.tickDelta, targetCrystal.lastRenderX, targetCrystal.getX()) - targetCrystal.getX();
+            double y = MathHelper.lerp(event.tickDelta, targetCrystal.lastRenderY, targetCrystal.getY()) - targetCrystal.getY();
+            double z = MathHelper.lerp(event.tickDelta, targetCrystal.lastRenderZ, targetCrystal.getZ()) - targetCrystal.getZ();
+
+            Box box = targetCrystal.getBoundingBox();
             event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, new Color(0, 0, 0, 0), Color.CYAN, ShapeMode.Lines, 0);
         }
     }
-
 
     private void attack(Entity target) {
         mc.interactionManager.attackEntity(mc.player, target);
         mc.player.swingHand(Hand.MAIN_HAND);
     }
 
-    @EventHandler
-    private void onEntityAdded(EntityAddedEvent event) {
-        if (!(event.entity instanceof EndCrystalEntity)) return; // stops if not is endcrystal
-        if (mc.crosshairTarget == null) return;
-
+    private boolean isEntityOnTop(Entity ent) { // given block, check for entity
         HitResult allcrosshair = mc.crosshairTarget;
-        if ((allcrosshair.getType() == HitResult.Type.BLOCK)
-                && (((BlockHitResult)allcrosshair).getBlockPos().equals(event.entity.getBlockPos().down()))) {
-            targetCrystal = event.entity;
-            oldCrystalTarg = targetCrystal;
+        if (!(allcrosshair instanceof BlockHitResult)) return false;
+        BlockPos ptrPos = ((BlockHitResult) allcrosshair).getBlockPos();
+        return ptrPos.equals(ent.getBlockPos().down());
+    }
+
+    private Entity doesBlockHaveEntOnTop() { // given block, find entity
+        for (Entity i : crystalEntList) {
+            if (isEntityOnTop(i))
+                return i;
+        }
+        return null;
+    }
+
+    private void crystalListFilter() {
+        crystalEntList.clear();
+        if (mc.world == null) return;
+
+        for (Entity i : mc.world.getEntities()) {
+            if (i == null) continue;
+            if (!i.isAlive()) continue;
+            if (!(i instanceof EndCrystalEntity)) continue;
+
+            HitResult allcrosshair = mc.crosshairTarget;
+            if (!(allcrosshair instanceof BlockHitResult)) continue;
+            if (!isEntityOnTop(i)) continue;
+            crystalEntList.add(i);
         }
     }
 
@@ -192,6 +220,7 @@ public class ManualCrystal extends Module {
         // look for crystals & // find crystal at basePos.up- Done in onEntAdd
         // rotate if necessary
         // attack
+        Entity targetCrystal = doesBlockHaveEntOnTop();
         if (targetCrystal == null) return;
         attack(targetCrystal);
     }
@@ -199,6 +228,7 @@ public class ManualCrystal extends Module {
     
     private boolean canPlace(BlockPos loc) {
         if (mc.player == null) return false;
+        if (mc.world == null) return false;
         BlockState upstate = mc.world.getBlockState(loc.up());
         BlockState state = mc.world.getBlockState(loc);
 
