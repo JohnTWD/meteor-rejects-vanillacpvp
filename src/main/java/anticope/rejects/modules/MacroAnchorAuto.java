@@ -132,11 +132,14 @@ public class MacroAnchorAuto extends Module {
         if (mc.options.useKey.isPressed() && allcrosshair.getType() == HitResult.Type.BLOCK) {
             BlockHitResult asshair = (BlockHitResult)allcrosshair;
             assert mc.interactionManager != null;
-            if (mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR && (phase == 0)) {
+            boolean anchorExistsAtPtr = mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR;
+
+            if (anchorExistsAtPtr && phase == 0) {// early w/o placing
+                info("anchor found here, phase 1 begin");
                 phase = 1;
-                sDel = 0;
             }
-            if (phase == 0 && handItem == Items.RESPAWN_ANCHOR) { // place anchor
+
+            if (phase == 0 && !anchorExistsAtPtr && handItem == Items.RESPAWN_ANCHOR) { // place anchor
                 BlockPos toPlaceOn = asshair.getBlockPos();
                 assert mc.world != null;
                 if (mc.world.getBlockState(toPlaceOn).getBlock() != Blocks.RESPAWN_ANCHOR) {
@@ -148,7 +151,8 @@ public class MacroAnchorAuto extends Module {
 
                     BlockUtils.place(toPlaceOn, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                 }
-                phase = 1;
+                info("attempt place");
+                //phase = 1;
                 return;
             }
 
@@ -167,17 +171,15 @@ public class MacroAnchorAuto extends Module {
                     InvUtils.move().from(result.slot()).to(mc.player.getInventory().selectedSlot);
                 }
                 phase = 2;
-                return;
             }
             if (phase == 2 && cDel <= 0) { // charge anchor
-                if (mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR) {
+                if (anchorExistsAtPtr) {
                     mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
                     phase = 3;
                     sDel = changeSlotDel.get();
                 } else {
                     phase = 6;
                 }
-                return;
             }
             if (phase == 3 && sDel <= 0) { // switch to item anchor
                 FindItemResult result = InvUtils.find(Items.RESPAWN_ANCHOR);
@@ -197,14 +199,12 @@ public class MacroAnchorAuto extends Module {
                     } else InvUtils.move().from(result.slot()).to(mc.player.getInventory().selectedSlot);
                 }
                 phase = 4;
-                return;
             }
             if (phase == 4 && bDel <= 0){ // explode
                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
                 phase = 5;
                 if (emptyWarningThrown)
                     toggle();
-                return;
             }
 
             if (phase == 1 || phase == 3) sDel--;

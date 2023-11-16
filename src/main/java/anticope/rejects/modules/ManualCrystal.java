@@ -9,12 +9,15 @@ import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventPriority;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 
 public class ManualCrystal extends Module {
@@ -40,14 +43,14 @@ public class ManualCrystal extends Module {
             .build()
     );
 
-    private final Setting<Integer> breakDel = sgGeneral.add(new IntSetting.Builder()
+    /*private final Setting<Integer> breakDel = sgGeneral.add(new IntSetting.Builder()
             .name("breakDelay")
             .description("how long in ticks to wait to break crystals")
             .defaultValue(1)
             .range(0,20)
             .sliderRange(0,20)
             .build()
-    );
+    );*/
 
     private enum RotateType{
         NoRotate,
@@ -63,18 +66,29 @@ public class ManualCrystal extends Module {
 
     @EventHandler(priority = EventPriority.HIGH)
     private void onTick(TickEvent.Post event) {
-        /*
+        
         if (mc.player == null) return;
         ItemStack mainHand = mc.player.getMainHandStack();
         if (mainHand == null) return;
+        if (mc.crosshairTarget == null) return;
+        HitResult allcrosshair = mc.crosshairTarget;
 
         Item handItem = mainHand.getItem();
 
         if (mc.options.useKey.isPressed()) {
             if (handItem == Items.END_CRYSTAL) {
-
+                BlockHitResult asshair = (BlockHitResult) allcrosshair;
+                if (canPlace(asshair.getBlockPos())) {
+                    BlockUtils.place(toPlaceOn, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+                }
             }
-        }*/
+        }
     }
-
+    
+    private boolean canPlace(BlockPos loc) {
+        BlockState state = mc.world.getBlockState(loc);
+        BlockState upstate = mc.world.getBlockState(loc.up());
+        return ((state.getBlock() == Blocks.OBSIDIAN || state.getBlock() == Blocks.BEDROCK) && upstate.getBlock() == Blocks.AIR))
+    }
+ 
 }
