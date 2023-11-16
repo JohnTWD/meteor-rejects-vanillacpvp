@@ -118,6 +118,7 @@ public class MacroAnchorAuto extends Module {
             BlockHitResult asshair = (BlockHitResult)allcrosshair;
             assert mc.interactionManager != null;
             if (mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR && (phase == 0)) {
+                info("skipped phase 0");
                 phase = 1;
                 sDel = 0;
             }
@@ -133,6 +134,7 @@ public class MacroAnchorAuto extends Module {
 
                     BlockUtils.place(toPlaceOn, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                 }
+                info("placed anchor");
                 phase = 1;
                 return;
             }
@@ -151,6 +153,7 @@ public class MacroAnchorAuto extends Module {
                 } else {
                     InvUtils.move().from(result.slot()).to(mc.player.getInventory().selectedSlot);
                 }
+                info("Swapped to glowstone");
                 phase = 2;
                 return;
             }
@@ -159,6 +162,7 @@ public class MacroAnchorAuto extends Module {
                     mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
                     phase = 3;
                     sDel = changeSlotDel.get();
+                    info("Charged anchor");
                 } else {
                     phase = 5;
                 }
@@ -181,6 +185,7 @@ public class MacroAnchorAuto extends Module {
                         InvUtils.swap(mc.player.getInventory().selectedSlot + 1, false);
                     } else InvUtils.move().from(result.slot()).to(mc.player.getInventory().selectedSlot);
                 }
+                info("swapped to anchor");
                 phase = 4;
                 return;
             }
@@ -189,6 +194,7 @@ public class MacroAnchorAuto extends Module {
                 phase = 5;
                 if (emptyWarningThrown)
                     toggle();
+                info("exploded");
                 return;
             }
             if (phase == 4) pDel--; // decr ticks

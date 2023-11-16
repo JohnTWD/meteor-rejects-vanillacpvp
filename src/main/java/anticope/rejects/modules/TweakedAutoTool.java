@@ -203,7 +203,7 @@ public class TweakedAutoTool extends Module {
         for (int i = 0; i < 9; i++) {
             ItemStack itemStack = mc.player.getInventory().getStack(i);
 
-            if (isTool(itemStack)) {
+            if (isWeapon(itemStack)) {
                 int damage = itemStack.getDamage();
 
                 if (damage < 0) continue;
@@ -304,10 +304,18 @@ public class TweakedAutoTool extends Module {
     }
 
     public static boolean isTool(Item item) {
-        return item instanceof AxeItem || item instanceof ShearsItem || item instanceof SwordItem || item instanceof TridentItem;
+        return item instanceof ToolItem || item instanceof ShearsItem || item instanceof SwordItem;
     }
     public static boolean isTool(ItemStack itemStack) {
         return isTool(itemStack.getItem());
+    }
+
+    private boolean isWeapon(Item item) {
+        return item instanceof SwordItem || item instanceof AxeItem || item instanceof TridentItem;
+    }
+
+    private boolean isWeapon(ItemStack istack) {
+        return isWeapon(istack.getItem());
     }
 
     private static boolean isFortunable(Block block) {
