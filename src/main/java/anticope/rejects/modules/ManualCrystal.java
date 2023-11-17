@@ -135,6 +135,7 @@ public class ManualCrystal extends Module {
                         }
                     }
                     pDel = placeDelay.get();
+                    return;
                 }
                 if (bDel <= 0) {
                     if (allcrosshair.getType() == HitResult.Type.ENTITY) { // looking at crystal, KILL IT!!!
@@ -147,7 +148,7 @@ public class ManualCrystal extends Module {
                         Entity crysEnt = doesBlockHaveEntOnTop();
                         if (crysEnt != null) {
                             float entPitch = (float) Rotations.getPitch(crysEnt, Target.Feet);
-                            float rotDiv = getRotDiv(bDel, entPitch);
+                            float rotDiv = getRotDiv(breakDel.get(), entPitch);
                             Rotations.rotate(mc.player.getHeadYaw(), mc.player.getPitch() + rotDiv);
                         }
                     }
