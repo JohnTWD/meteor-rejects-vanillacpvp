@@ -93,7 +93,7 @@ public class ManualCrystal extends Module {
         pDel = placeDelay.get();
         bDel = breakDel.get();
         crystalEntList.clear();
-        //stopItem = false;
+        stopItem = false;
     }
     private boolean stopItem = false;
     public boolean shouldStopItemUse() {
