@@ -93,8 +93,12 @@ public class ManualCrystal extends Module {
         pDel = placeDelay.get();
         bDel = breakDel.get();
         crystalEntList.clear();
+        stopItem = false;
     }
-
+    private boolean stopItem = false;
+    public boolean shouldStopItemUse() {
+        return  stopItem;
+    }
     @Override
     public void onActivate() {
         resetPhase();
@@ -131,7 +135,7 @@ public class ManualCrystal extends Module {
             if (handItem == Items.END_CRYSTAL) {
                 if ((allcrosshair.getType() != HitResult.Type.ENTITY) && (allcrosshair.getType() != HitResult.Type.BLOCK))
                     return;
-
+                stopItem = true;
                 crystalListFilter();
 
                 if (pDel < 0) {
