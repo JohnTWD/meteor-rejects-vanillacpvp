@@ -126,6 +126,7 @@ public class ManualCrystal extends Module {
                     return;
 
                 crystalListFilter();
+                info("%f", mc.player.getPitch());
 
                 if (pDel < 0) {
                     if (allcrosshair.getType() == HitResult.Type.BLOCK) {
@@ -133,8 +134,8 @@ public class ManualCrystal extends Module {
                         BlockPos ptrPos = asshair.getBlockPos();
                         if (canPlace(ptrPos)) {
                             if (rotateSetting.get()) {
-                                float randomOffsetYaw = (float) Utils.random(-1.4, .88);
-                                float randomOffsetPitch = (float) Utils.random(-4.20, 6.66);
+                                float randomOffsetYaw = (float) Utils.random(-.14, .88);
+                                float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
                                 Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(ptrPos) + randomOffsetPitch);
                             }
                             BlockUtils.place(ptrPos, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
@@ -154,10 +155,10 @@ public class ManualCrystal extends Module {
                         Entity crysEnt = doesBlockHaveEntOnTop();
                         if (crysEnt != null) {
                             float entPitch = (float) Rotations.getPitch(crysEnt, Target.Feet);
-                            float rotDiv = getRotDiv(breakDel.get(), entPitch);
+                            float rotDiv = getRotDiv(bDel, entPitch);
                             float randomOffsetYaw = (float) Utils.random(-1.4, .88);
-                            float randomOffsetPitch = (float) Utils.random(-4.20, 6.66);
-                            Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, mc.player.getPitch() + randomOffsetPitch+ rotDiv);
+                            float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
+                            Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, mc.player.getPitch() + randomOffsetPitch + rotDiv);
                         }
                     }
                 }
@@ -211,7 +212,7 @@ public class ManualCrystal extends Module {
 
     private float getRotDiv(int div, float target) {
         if (div != 0) div = 1;
-        return getPitchDelta(target) / div;
+        return Math.abs(getPitchDelta(target)) / div;
     }
 
     private void attack(Entity target) {
@@ -264,8 +265,8 @@ public class ManualCrystal extends Module {
         if (mc.player == null) return;
         if (noWallCrystal.get() && !PlayerUtils.canSeeEntity(targetCrystal)) return;
         if (rotateSetting.get()) {
-            float randomOffsetYaw = (float) Utils.random(-1.4, .88);
-            float randomOffsetPitch = (float) Utils.random(-4.20, 6.66);
+            float randomOffsetYaw = (float) Utils.random(-.14, .88);
+            float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
             Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(targetCrystal, Target.Feet) +randomOffsetPitch);
         }
         attack(targetCrystal);
