@@ -134,9 +134,11 @@ public class MacroAnchorAuto extends Module {
             assert mc.interactionManager != null;
             boolean anchorExistsAtPtr = mc.world.getBlockState(asshair.getBlockPos()).getBlock() == Blocks.RESPAWN_ANCHOR;
 
-            if (anchorExistsAtPtr && phase == 0) {// early w/o placing
+            if (anchorExistsAtPtr && phase == 0) // early w/o placing
                 phase = 1;
-            }
+
+            if (handItem == Items.GLOWSTONE && phase == 0)
+                phase = 3;
 
             if (phase == 0 && handItem == Items.RESPAWN_ANCHOR) { // place anchor
                 BlockPos toPlaceOn = asshair.getBlockPos();
