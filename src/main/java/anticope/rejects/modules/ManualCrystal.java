@@ -93,11 +93,18 @@ public class ManualCrystal extends Module {
         pDel = placeDelay.get();
         bDel = breakDel.get();
         crystalEntList.clear();
-        stopItem = false;
     }
-    private boolean stopItem = false;
     public boolean shouldStopItemUse() {
-        return  stopItem;
+        if (mc.player == null) return false;
+        ItemStack mainHand = mc.player.getMainHandStack();
+        if (mainHand == null) return false;
+        if (mainHand.getItem() != Items.END_CRYSTAL) return false;
+        if (!mc.options.useKey.isPressed()) return false;
+        if (mc.crosshairTarget == null) return false;
+        HitResult allcrosshair = mc.crosshairTarget;
+        if (allcrosshair.getType() == HitResult.Type.MISS) return false;
+        mc.player.stopUsingItem();
+        return true;
     }
     @Override
     public void onActivate() {
@@ -133,9 +140,8 @@ public class ManualCrystal extends Module {
 
         if (mc.options.useKey.isPressed()) {
             if (handItem == Items.END_CRYSTAL) {
-                if ((allcrosshair.getType() != HitResult.Type.ENTITY) && (allcrosshair.getType() != HitResult.Type.BLOCK))
+                if (allcrosshair.getType() == HitResult.Type.MISS)
                     return;
-                stopItem = true;
                 crystalListFilter();
 
                 if (pDel < 0) {
@@ -187,7 +193,7 @@ public class ManualCrystal extends Module {
         if (mc.crosshairTarget == null) return;
         Item handItem = mc.player.getMainHandStack().getItem();
         if (handItem != Items.END_CRYSTAL) return;
-        
+
         HitResult allcrosshair = mc.crosshairTarget;
         BlockPos ptrPos = null;
         if (allcrosshair.getType() == HitResult.Type.BLOCK) {
