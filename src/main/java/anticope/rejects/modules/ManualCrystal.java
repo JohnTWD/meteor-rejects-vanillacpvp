@@ -91,17 +91,11 @@ public class ManualCrystal extends Module {
     @Override
     public void onActivate() {
         resetPhase();
-        stopItem = false;
     }
     @Override
     public void onDeactivate() {
-        stopItem = false;
         if (forceSwitch.get()) InvUtils.swap(origSlot, false);
         resetPhase();
-    }
-    private boolean stopItem = false;
-    public boolean shouldStopItemUse() {
-        return  stopItem;
     }
     @EventHandler(priority = EventPriority.HIGH)
     private void onTick(TickEvent.Post event) {
@@ -125,12 +119,11 @@ public class ManualCrystal extends Module {
                 toggle();
             }
         }
-        stopItem = false;
 
         if (mc.options.useKey.isPressed()) {
             if (handItem == Items.END_CRYSTAL) {
                 if (!(allcrosshair.getType() == HitResult.Type.MISS))
-                    stopItem = true;
+                    return;
 
                 crystalListFilter();
 
@@ -144,7 +137,6 @@ public class ManualCrystal extends Module {
                                 float randomOffsetPitch = (float) Utils.random(-4.20, 6.66);
                                 Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(ptrPos) + randomOffsetPitch);
                             }
-                            info("we placin");
                             BlockUtils.place(ptrPos, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                         }
                     }
@@ -156,7 +148,6 @@ public class ManualCrystal extends Module {
                         EntityHitResult enthr = (EntityHitResult) allcrosshair;
                         if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
                     } else noCrystalInteract();
-                    info("we breakin");
                     bDel = breakDel.get();
                 } else {
                     if (rotateSetting.get()) {

@@ -19,7 +19,5 @@ public class MinecraftClientMixin {
             // Cancel the event to prevent block placement
             ci.cancel();
         }
-        if (Modules.get().get(ManualCrystal.class).shouldStopItemUse())
-            ci.cancel();
     }
 }
