@@ -48,6 +48,13 @@ public class ManualCrystal extends Module {
             .build()
     );
 
+    private final Setting<Boolean> doNaturalPlace = sgGeneral.add(new BoolSetting.Builder()
+            .name("naturalPlace")
+            .description("Since minecraft already auto places, use this to stop extra placing (timed rotations still apply)")
+            .defaultValue(false)
+            .build()
+    );
+
 
     private final Setting<Boolean> forceSwitch = sgGeneral.add(new BoolSetting.Builder()
             .name("switch2Crystal")
@@ -126,7 +133,6 @@ public class ManualCrystal extends Module {
                     return;
 
                 crystalListFilter();
-                info("%f", mc.player.getPitch());
 
                 if (pDel < 0) {
                     if (allcrosshair.getType() == HitResult.Type.BLOCK) {
@@ -138,7 +144,8 @@ public class ManualCrystal extends Module {
                                 float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
                                 Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(ptrPos) + randomOffsetPitch);
                             }
-                            BlockUtils.place(ptrPos, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
+                            if (!doNaturalPlace.get())
+                                BlockUtils.place(ptrPos, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                         }
                     }
                     pDel = placeDelay.get();
