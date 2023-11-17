@@ -19,17 +19,4 @@ public class PlayerEntityMixin {
     private void onGetOffGroundSpeed(CallbackInfoReturnable<Float> cir) {
         cir.setReturnValue(MeteorClient.EVENT_BUS.post(OffGroundSpeedEvent.get(cir.getReturnValueF())).speed);
     }
-
-    @Inject(
-            method = "eatFood",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void onEatFood(World world, ItemStack stack, CallbackInfoReturnable<ItemStack> cir) {
-        // Check if the right-click button is held down
-        if (Modules.get().get(ManualCrystal.class).shouldStopItemUse()) {
-            // Cancel the event to prevent eating
-            cir.setReturnValue(stack);
-        }
-    }
 }
