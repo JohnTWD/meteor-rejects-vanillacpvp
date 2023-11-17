@@ -148,7 +148,7 @@ public class ManualCrystal extends Module {
                         if (crysEnt != null) {
                             float entPitch = (float) Rotations.getPitch(crysEnt, Target.Feet);
                             float rotDiv = getRotDiv(bDel, entPitch);
-                            Rotations.rotate(mc.player.getHeadYaw(), entPitch + rotDiv);
+                            Rotations.rotate(mc.player.getHeadYaw(), mc.player.getPitch() + rotDiv);
                         }
                     }
                 }
@@ -197,7 +197,7 @@ public class ManualCrystal extends Module {
 
     private float getPitchDelta(float target) {
         assert mc.player != null;
-        return mc.player.getHeadYaw() - target;
+        return mc.player.getPitch() - target;
     }
 
     private float getRotDiv(int div, float target) {
