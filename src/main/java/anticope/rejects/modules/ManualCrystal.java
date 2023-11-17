@@ -185,6 +185,9 @@ public class ManualCrystal extends Module {
     @EventHandler
     private void onRender(Render3DEvent event) {
         if (mc.crosshairTarget == null) return;
+        Item handItem = mc.player.getMainHandStack().getItem();
+        if (handItem != Items.END_CRYSTAL) return;
+        
         HitResult allcrosshair = mc.crosshairTarget;
         BlockPos ptrPos = null;
         if (allcrosshair.getType() == HitResult.Type.BLOCK) {
