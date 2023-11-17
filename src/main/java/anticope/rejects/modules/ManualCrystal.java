@@ -90,13 +90,18 @@ public class ManualCrystal extends Module {
     @Override
     public void onActivate() {
         resetPhase();
+        stopItem = false;
     }
     @Override
     public void onDeactivate() {
+        stopItem = false;
         if (forceSwitch.get()) InvUtils.swap(origSlot, false);
         resetPhase();
     }
-
+    private boolean stopItem = false;
+    public boolean shouldStopItemUse() {
+        return  stopItem;
+    }
     @EventHandler(priority = EventPriority.HIGH)
     private void onTick(TickEvent.Post event) {
         
@@ -119,9 +124,11 @@ public class ManualCrystal extends Module {
                 toggle();
             }
         }
+        stopItem = false;
 
         if (mc.options.useKey.isPressed()) {
             if (handItem == Items.END_CRYSTAL) {
+                stopItem = true;
                 crystalListFilter();
 
                 if (pDel <= 0) {
