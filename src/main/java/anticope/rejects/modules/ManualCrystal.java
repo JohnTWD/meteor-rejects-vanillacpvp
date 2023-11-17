@@ -129,7 +129,7 @@ public class ManualCrystal extends Module {
 
         if (mc.options.useKey.isPressed()) {
             if (handItem == Items.END_CRYSTAL) {
-                if (allcrosshair.getType() == HitResult.Type.MISS)
+                if ((allcrosshair.getType() != HitResult.Type.ENTITY) && (allcrosshair.getType() != HitResult.Type.BLOCK))
                     return;
 
                 crystalListFilter();
