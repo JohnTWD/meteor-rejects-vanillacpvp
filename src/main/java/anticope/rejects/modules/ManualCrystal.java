@@ -18,6 +18,7 @@ import meteordevelopment.orbit.EventPriority;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -158,13 +159,13 @@ public class ManualCrystal extends Module {
                 if (bDel <= 0) {
                     if (allcrosshair.getType() == HitResult.Type.ENTITY) { // looking at crystal, KILL IT!!!
                         EntityHitResult enthr = (EntityHitResult) allcrosshair;
-                        if (enthr.getEntity() instanceof EndCrystalEntity) attack(enthr.getEntity());
+                        if (isGoodCrystal(enthr.getEntity(), false)) attack(enthr.getEntity());
                     } else noCrystalInteract();
                     bDel = breakDel.get();
                 } else {
                     if (rotateSetting.get()) {
                         Entity crysEnt = doesBlockHaveEntOnTop();
-                        if (crysEnt != null) {
+                        if (isGoodCrystal(crysEnt, true)) {
                             float entPitch = (float) Rotations.getPitch(crysEnt, Target.Feet);
                             float rotDiv = getRotDiv(bDel, entPitch);
                             float randomOffsetYaw = (float) Utils.random(-1.4, .88);
@@ -204,16 +205,15 @@ public class ManualCrystal extends Module {
             }
         }
         Entity targetCrystal = doesBlockHaveEntOnTop();
-        if (targetCrystal == null || ptrPos == null) return;
+        if (ptrPos == null || !isGoodCrystal(targetCrystal, true)) return;
 
-        if (targetCrystal.isAlive()  && ptrPos.equals(targetCrystal.getBlockPos().down())) {
-            double x = MathHelper.lerp(event.tickDelta, targetCrystal.lastRenderX, targetCrystal.getX()) - targetCrystal.getX();
-            double y = MathHelper.lerp(event.tickDelta, targetCrystal.lastRenderY, targetCrystal.getY()) - targetCrystal.getY();
-            double z = MathHelper.lerp(event.tickDelta, targetCrystal.lastRenderZ, targetCrystal.getZ()) - targetCrystal.getZ();
+        double x = MathHelper.lerp(event.tickDelta, targetCrystal.lastRenderX, targetCrystal.getX()) - targetCrystal.getX();
+        double y = MathHelper.lerp(event.tickDelta, targetCrystal.lastRenderY, targetCrystal.getY()) - targetCrystal.getY();
+        double z = MathHelper.lerp(event.tickDelta, targetCrystal.lastRenderZ, targetCrystal.getZ()) - targetCrystal.getZ();
 
-            Box box = targetCrystal.getBoundingBox();
-            event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, new Color(0, 0, 0, 0), Color.CYAN, ShapeMode.Lines, 0);
-        }
+        Box box = targetCrystal.getBoundingBox();
+        event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, new Color(0, 0, 0, 0), Color.CYAN, ShapeMode.Lines, 0);
+
     }
 
     private float getPitchDelta(float target) {
@@ -226,14 +226,17 @@ public class ManualCrystal extends Module {
         return Math.abs(getPitchDelta(target)) / div;
     }
 
-    private void attack(Entity target) {
-        if (target == null) return;
-        if (!target.isAlive()) return;
-        if (!target.isAttackable()) return;
-        if (!(target instanceof EndCrystalEntity)) return;
-        //if (!target.isLiving()) return;
-        if (mc.player == null) return;
+    private boolean isGoodCrystal(Entity target, boolean shouldCheckOnTop) { // the only good crystal is a living one
+        if (target == null) return false;
+        if ((target instanceof LivingEntity && ((LivingEntity) target).isDead()) || !target.isAlive()) return false;
+        if (!target.isAttackable()) return false;
+        if (!(target instanceof EndCrystalEntity)) return false;
+        if (mc.player == null) return false;
+        return  (!(shouldCheckOnTop && !isEntityOnTop(target)));
+    }
 
+    private void attack(Entity target) {
+        if (!isGoodCrystal(target, false)) return;
         mc.interactionManager.attackEntity(mc.player, target);
         mc.player.swingHand(Hand.MAIN_HAND);
     }
@@ -248,7 +251,7 @@ public class ManualCrystal extends Module {
 
     private Entity doesBlockHaveEntOnTop() { // given block, find entity
         for (Entity i : crystalEntList) {
-            if (isEntityOnTop(i))
+            if (isGoodCrystal(i, true))
                 return i;
         }
         return null;
@@ -259,13 +262,7 @@ public class ManualCrystal extends Module {
         if (mc.world == null) return;
 
         for (Entity i : mc.world.getEntities()) {
-            if (i == null) continue;
-            if (!i.isAlive()) continue;
-            if (!(i instanceof EndCrystalEntity)) continue;
-
-            HitResult allcrosshair = mc.crosshairTarget;
-            if (!(allcrosshair instanceof BlockHitResult)) continue;
-            if (!isEntityOnTop(i)) continue;
+            if (!isGoodCrystal(i, true)) continue;
             crystalEntList.add(i);
         }
     }
@@ -275,9 +272,7 @@ public class ManualCrystal extends Module {
         // rotate if necessary
         // attack
         Entity targetCrystal = doesBlockHaveEntOnTop();
-        if (targetCrystal == null) return;
-        if (mc.player == null) return;
-        if (!(targetCrystal instanceof EndCrystalEntity)) return;
+        if (!isGoodCrystal(targetCrystal, true)) return;
         if (noWallCrystal.get() && !PlayerUtils.canSeeEntity(targetCrystal)) return;
         if (rotateSetting.get()) {
             float randomOffsetYaw = (float) Utils.random(-.14, .88);
