@@ -15,7 +15,7 @@ public class MinecraftClientMixin {
     @Inject(method = "doItemUse", at = @At(value = "HEAD"), cancellable = true)
     private void onDoItemUse(CallbackInfo ci) {
         // Check if building blocks should be disabled
-        if (Modules.get().get(MacroAnchorAuto.class).disablePlacing() || Modules.get().get(MacroAnchorAuto.class).disablePlacing())
+        if (Modules.get().get(MacroAnchorAuto.class).disablePlacing() || Modules.get().get(ManualCrystal.class).shouldStopItemUse())
             // Cancel the event to prevent block placement
             ci.cancel();
     }

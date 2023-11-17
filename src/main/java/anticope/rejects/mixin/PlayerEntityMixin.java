@@ -1,13 +1,8 @@
 package anticope.rejects.mixin;
 
 import anticope.rejects.events.OffGroundSpeedEvent;
-import anticope.rejects.modules.MacroAnchorAuto;
-import anticope.rejects.modules.ManualCrystal;
 import meteordevelopment.meteorclient.MeteorClient;
-import meteordevelopment.meteorclient.systems.modules.Modules;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

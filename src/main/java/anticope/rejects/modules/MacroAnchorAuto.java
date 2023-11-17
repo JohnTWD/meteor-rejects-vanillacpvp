@@ -138,7 +138,7 @@ public class MacroAnchorAuto extends Module {
                 phase = 1;
             }
 
-            if (phase == 0 && !anchorExistsAtPtr && handItem == Items.RESPAWN_ANCHOR) { // place anchor
+            if (phase == 0 && handItem == Items.RESPAWN_ANCHOR) { // place anchor
                 BlockPos toPlaceOn = asshair.getBlockPos();
                 assert mc.world != null;
                 if (mc.world.getBlockState(toPlaceOn).getBlock() != Blocks.RESPAWN_ANCHOR) {

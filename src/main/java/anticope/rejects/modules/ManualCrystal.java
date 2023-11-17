@@ -1,7 +1,6 @@
 package anticope.rejects.modules;
 
 import anticope.rejects.MeteorRejectsAddon;
-import baritone.api.utils.BlockUtils;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.*;
@@ -231,6 +230,8 @@ public class ManualCrystal extends Module {
         if (target == null) return;
         if (!target.isAlive()) return;
         if (!target.isAttackable()) return;
+        if (!(target instanceof EndCrystalEntity)) return;
+        //if (!target.isLiving()) return;
         if (mc.player == null) return;
 
         mc.interactionManager.attackEntity(mc.player, target);
@@ -238,6 +239,7 @@ public class ManualCrystal extends Module {
     }
 
     private boolean isEntityOnTop(Entity ent) { // given block, check for entity
+        if (!(ent instanceof EndCrystalEntity)) return false;
         HitResult allcrosshair = mc.crosshairTarget;
         if (!(allcrosshair instanceof BlockHitResult)) return false;
         BlockPos ptrPos = ((BlockHitResult) allcrosshair).getBlockPos();
@@ -275,6 +277,7 @@ public class ManualCrystal extends Module {
         Entity targetCrystal = doesBlockHaveEntOnTop();
         if (targetCrystal == null) return;
         if (mc.player == null) return;
+        if (!(targetCrystal instanceof EndCrystalEntity)) return;
         if (noWallCrystal.get() && !PlayerUtils.canSeeEntity(targetCrystal)) return;
         if (rotateSetting.get()) {
             float randomOffsetYaw = (float) Utils.random(-.14, .88);
