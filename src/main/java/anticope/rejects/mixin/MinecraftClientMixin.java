@@ -1,6 +1,7 @@
 package anticope.rejects.mixin;
 
 import anticope.rejects.modules.MacroAnchorAuto;
+import anticope.rejects.modules.ManualCrystal;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import net.minecraft.client.MinecraftClient;
 
@@ -18,5 +19,7 @@ public class MinecraftClientMixin {
             // Cancel the event to prevent block placement
             ci.cancel();
         }
+        if (Modules.get().get(ManualCrystal.class).shouldStopItemUse())
+            ci.cancel();
     }
 }
