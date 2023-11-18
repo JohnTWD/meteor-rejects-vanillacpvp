@@ -293,10 +293,11 @@ public class ManualCrystal extends Module {
         Entity targetCrystal = doesBlockHaveEntOnTop();
         if (!isGoodCrystal(targetCrystal, true)) return;
         if (noWallCrystal.get() && !PlayerUtils.canSeeEntity(targetCrystal)) return;
+
         if (rotateSetting.get()) {
             float randomOffsetYaw = (float) Utils.random(-.14, .88);
             float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
-            Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(targetCrystal, Target.Feet) +randomOffsetPitch);
+            Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(targetCrystal, Target.Feet) +randomOffsetPitch, EventPriority.HIGHEST);
         }
         attack(targetCrystal);
     }
