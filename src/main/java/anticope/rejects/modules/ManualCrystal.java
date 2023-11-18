@@ -23,6 +23,7 @@ import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
@@ -54,6 +55,13 @@ public class ManualCrystal extends Module {
             .defaultValue(false)
             .build()
     );
+    private final Setting<Boolean> doPacketAttack = sgGeneral.add(new BoolSetting.Builder()
+            .name("doPacketAttack")
+            .description("Since minecraft already auto places, use this to stop extra placing (timed rotations still apply)")
+            .defaultValue(false)
+            .build()
+    );
+
 
 
     private final Setting<Boolean> forceSwitch = sgGeneral.add(new BoolSetting.Builder()
@@ -246,7 +254,8 @@ public class ManualCrystal extends Module {
 
     private void attack(Entity target) {
         if (!isGoodCrystal(target, false)) return;
-        mc.interactionManager.attackEntity(mc.player, target);
+        if (doPacketAttack.get()) mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(target, mc.player.isSneaking()));
+        else mc.interactionManager.attackEntity(mc.player, target);
         mc.player.swingHand(Hand.MAIN_HAND);
     }
 
