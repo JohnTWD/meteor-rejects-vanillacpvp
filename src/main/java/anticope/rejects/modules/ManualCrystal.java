@@ -62,6 +62,13 @@ public class ManualCrystal extends Module {
             .build()
     );
 
+    private final Setting<Boolean> doManualBreakLook = sgGeneral.add(new BoolSetting.Builder()
+            .name("manualLookBreak")
+            .description("manually look up to hit the crystal")
+            .defaultValue(false)
+            .build()
+    );
+
 
 
     private final Setting<Boolean> forceSwitch = sgGeneral.add(new BoolSetting.Builder()
@@ -294,11 +301,12 @@ public class ManualCrystal extends Module {
         if (!isGoodCrystal(targetCrystal, true)) return;
         if (noWallCrystal.get() && !PlayerUtils.canSeeEntity(targetCrystal)) return;
 
-        if (rotateSetting.get()) {
+        /*if (rotateSetting.get()) {
             float randomOffsetYaw = (float) Utils.random(-.14, .88);
             float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
             Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(targetCrystal, Target.Feet) +randomOffsetPitch, EventPriority.HIGHEST);
-        }
+        }*/
+        mc.player.setPitch((float) Rotations.getPitch(targetCrystal, Target.Feet));
         attack(targetCrystal);
     }
 
