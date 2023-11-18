@@ -103,6 +103,7 @@ public class ManualCrystal extends Module {
         crystalEntList.clear();
     }
     public boolean shouldStopItemUse() {
+        if (!this.isActive()) return false;
         if (mc.player == null) return false;
         ItemStack mainHand = mc.player.getMainHandStack();
         if (mainHand == null) return false;
