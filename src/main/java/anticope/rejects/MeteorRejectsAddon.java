@@ -30,7 +30,7 @@ public class MeteorRejectsAddon extends MeteorAddon {
         // Modules
         Modules modules = Modules.get();
 
-        modules.add(new Announcer());
+        modules.add(new AutoEz());
         modules.add(new PacketLogger());
         modules.add(new ManualCrystal());
         modules.add(new TweakedAutoTool());
