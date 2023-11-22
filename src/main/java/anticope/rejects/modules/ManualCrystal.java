@@ -168,7 +168,7 @@ public class ManualCrystal extends Module {
                             if (rotateSetting.get()) {
                                 float randomOffsetYaw = (float) Utils.random(-.14, .88);
                                 float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
-                                //Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(ptrPos) + randomOffsetPitch);
+                                Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(ptrPos) + randomOffsetPitch);
                             }
                             if (!doNaturalPlace.get())
                                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
@@ -192,7 +192,7 @@ public class ManualCrystal extends Module {
                             float rotDiv = getRotDiv(bDel, entPitch);
                             float randomOffsetYaw = (float) Utils.random(-1.4, .88);
                             float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
-                            //Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, mc.player.getPitch() + randomOffsetPitch + rotDiv);
+                            Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, mc.player.getPitch() + randomOffsetPitch + rotDiv);
                         }
                     }
                 }
@@ -306,7 +306,7 @@ public class ManualCrystal extends Module {
             float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
             Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(targetCrystal, Target.Feet) +randomOffsetPitch, EventPriority.HIGHEST);
         }*/
-        //mc.player.setPitch((float) Rotations.getPitch(targetCrystal, Target.Feet));
+        mc.player.setPitch((float) Rotations.getPitch(targetCrystal, Target.Feet));
         attack(targetCrystal);
     }
 
