@@ -29,10 +29,8 @@ public class MeteorRejectsAddon extends MeteorAddon {
 
         // Modules
         Modules modules = Modules.get();
-<<<<<<< HEAD
-        modules.add(new AutoEZ());
-=======
->>>>>>> parent of 92ae484 (added announcer and temp removed mcrystal rots)
+
+        modules.add(new Announcer());
         modules.add(new PacketLogger());
         modules.add(new ManualCrystal());
         modules.add(new TweakedAutoTool());
