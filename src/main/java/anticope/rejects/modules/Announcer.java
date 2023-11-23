@@ -5,6 +5,7 @@
 
 package anticope.rejects.modules;
 
+import anticope.rejects.MeteorRejectsAddon;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
@@ -45,7 +46,7 @@ public class Announcer extends Module {
 
 
     public Announcer() {
-        super(Categories.Misc, "announcer", "(Ported from old meteor src) Announces specified actions into chat.");
+        super(MeteorRejectsAddon.CATEGORY, "announcer", "(Ported from old meteor src) Announces specified actions into chat.");
     }
 
     @Override
