@@ -49,7 +49,7 @@ public class ManualCrystal extends Module {
             .build()
     );
 
-    private enum RotateMode {
+    public enum RotateMode {
         none,
         packet,
         forced
