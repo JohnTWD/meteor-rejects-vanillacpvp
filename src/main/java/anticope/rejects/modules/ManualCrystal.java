@@ -49,6 +49,18 @@ public class ManualCrystal extends Module {
             .build()
     );
 
+    private enum RotateMode {
+        none,
+        packet,
+        forced
+    }
+    private final Setting<RotateMode> rotMode = sgGeneral.add(new EnumSetting.Builder<RotateMode>()
+            .name("rotatemode")
+            .description("what rotate to use")
+            .defaultValue(RotateMode.none)
+            .build()
+    );
+
     private final Setting<Boolean> doNaturalPlace = sgGeneral.add(new BoolSetting.Builder()
             .name("naturalPlace")
             .description("Since minecraft already auto places, use this to stop extra placing (timed rotations still apply)")
@@ -68,8 +80,6 @@ public class ManualCrystal extends Module {
             .defaultValue(false)
             .build()
     );
-
-
 
     private final Setting<Boolean> forceSwitch = sgGeneral.add(new BoolSetting.Builder()
             .name("switch2Crystal")
@@ -93,12 +103,7 @@ public class ManualCrystal extends Module {
             .sliderRange(0,20)
             .build()
     );
-    private final Setting<Boolean> rotateSetting = sgGeneral.add(new BoolSetting.Builder()
-            .name("breakRotateSetting")
-            .description("whether or not should rotate to break a crystal")
-            .defaultValue(false)
-            .build()
-    );
+
     private int origSlot;
     private int pDel = placeDelay.get();
     private int bDel = breakDel.get();
@@ -165,14 +170,18 @@ public class ManualCrystal extends Module {
                         BlockHitResult asshair = (BlockHitResult) allcrosshair;
                         BlockPos ptrPos = asshair.getBlockPos();
                         if (canPlace(ptrPos)) {
-                            if (rotateSetting.get()) {
+                            if (rotMode.get() == RotateMode.packet) {
                                 float randomOffsetYaw = (float) Utils.random(-.14, .88);
                                 float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
                                 Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(ptrPos) + randomOffsetPitch);
+                            } else if (rotMode.get() == RotateMode.forced) {
+                                float randomOffsetYaw = (float) Utils.random(-.14, .88);
+                                float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
+                                mc.player.setPitch((float) Rotations.getPitch(ptrPos) + randomOffsetPitch);
+                                mc.player.setHeadYaw(mc.player.getHeadYaw() + randomOffsetYaw);
                             }
                             if (!doNaturalPlace.get())
                                 mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
-                                //BlockUtils.place(ptrPos, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                         }
                     }
                     pDel = placeDelay.get();
@@ -182,10 +191,10 @@ public class ManualCrystal extends Module {
                     if (allcrosshair.getType() == HitResult.Type.ENTITY) { // looking at crystal, KILL IT!!!
                         EntityHitResult enthr = (EntityHitResult) allcrosshair;
                         if (isGoodCrystal(enthr.getEntity(), false)) attack(enthr.getEntity());
-                    } else noCrystalInteract();
+                    } else if (doManualBreakLook.get()) noCrystalInteract();
                     bDel = breakDel.get();
                 } else {
-                    if (rotateSetting.get()) {
+                    if (rotMode.get() == RotateMode.packet) {
                         Entity crysEnt = doesBlockHaveEntOnTop();
                         if (isGoodCrystal(crysEnt, true)) {
                             float entPitch = (float) Rotations.getPitch(crysEnt, Target.Feet);
@@ -301,12 +310,16 @@ public class ManualCrystal extends Module {
         if (!isGoodCrystal(targetCrystal, true)) return;
         if (noWallCrystal.get() && !PlayerUtils.canSeeEntity(targetCrystal)) return;
 
-        /*if (rotateSetting.get()) {
+        if (rotMode.get() == RotateMode.packet) {
             float randomOffsetYaw = (float) Utils.random(-.14, .88);
             float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
             Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(targetCrystal, Target.Feet) +randomOffsetPitch, EventPriority.HIGHEST);
-        }*/
-        mc.player.setPitch((float) Rotations.getPitch(targetCrystal, Target.Feet));
+        } else if (rotMode.get() == RotateMode.forced) {
+            float randomOffsetYaw = (float) Utils.random(-.14, .88);
+            float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
+            mc.player.setPitch((float) Rotations.getPitch(targetCrystal, Target.Feet) + randomOffsetPitch);
+            mc.player.setHeadYaw(mc.player.getHeadYaw() + randomOffsetYaw);
+        }
         attack(targetCrystal);
     }
 

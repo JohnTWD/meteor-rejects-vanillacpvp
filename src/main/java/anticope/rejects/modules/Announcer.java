@@ -429,6 +429,8 @@ public class Announcer extends Module {
             synchronized (totemPopMap) {
                 for (PlayerEntity player : mc.world.getPlayers()) {
                     if (!totemPopMap.containsKey(player.getUuid())) continue;
+                    if (player ==  mc.player) continue;
+                    if (player.distanceTo(mc.player) > 7.5) continue; // arbitrary value but stops autoezzing people who are far
 
                     if (player.deathTime > 0 || player.getHealth() <= 0) {
                         int pops = totemPopMap.removeInt(player.getUuid());
