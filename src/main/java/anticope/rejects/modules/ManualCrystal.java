@@ -191,7 +191,7 @@ public class ManualCrystal extends Module {
                     if (allcrosshair.getType() == HitResult.Type.ENTITY) { // looking at crystal, KILL IT!!!
                         EntityHitResult enthr = (EntityHitResult) allcrosshair;
                         if (isGoodCrystal(enthr.getEntity(), false)) attack(enthr.getEntity());
-                    } else if (doManualBreakLook.get()) noCrystalInteract();
+                    } else if (!doManualBreakLook.get()) noCrystalInteract();
                     bDel = breakDel.get();
                 } else {
                     if (rotMode.get() == RotateMode.packet) {
