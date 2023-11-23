@@ -5,6 +5,9 @@
 
 package anticope.rejects.modules;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.meteorclient.MeteorClient;
@@ -19,7 +22,12 @@ import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket;
+
+import java.util.UUID;
 
 public class Announcer extends Module {
     private static final double TICK = 1.0 / 20.0;
@@ -30,8 +38,11 @@ public class Announcer extends Module {
             new Placing(),
             new DropItems(),
             new PickItems(),
-            new OpenContainer()
+            new OpenContainer(),
+            new AutoEZ()
     };
+
+
 
     public Announcer() {
         super(Categories.Misc, "announcer", "(Ported from old meteor src) Announces specified actions into chat.");
@@ -372,6 +383,60 @@ public class Announcer extends Module {
             if (count > 0) {
                 ChatUtils.sendPlayerMsg(msg.get().replace("{count}", Integer.toString(count)).replace("{item}", lastItem.getName().getString()));
                 count = 0;
+            }
+        }
+    }
+
+    private class AutoEZ extends Feature {
+
+        private final Setting<String> killmessage = sg.add(new StringSetting.Builder()
+                .name("autoezMessage")
+                .description("The chat message for killing niggers.")
+                .defaultValue("L bozo died | Meteor on crack!")
+                .build()
+        );
+        private Object2IntMap<UUID> totemPopMap = new Object2IntOpenHashMap<>();
+
+        @EventHandler
+        void onReceivePacket(PacketEvent.Receive event) {
+            if (!(event.packet instanceof EntityStatusS2CPacket p)) return;
+
+            if (p.getStatus() != 35) return;
+
+            Entity entity = p.getEntity(mc.world);
+
+            if (!(entity instanceof PlayerEntity)) return;
+
+            synchronized (totemPopMap) {
+                int pops = totemPopMap.getOrDefault(entity.getUuid(), 0);
+                totemPopMap.put(entity.getUuid(), ++pops);
+            }
+        }
+
+
+        AutoEZ() {
+            super("AutoEZ", "autoezIsOn", "troll enemies and anger them");
+        }
+
+        @Override
+        void reset() {
+            totemPopMap.clear();
+        }
+
+        @Override
+        void tick() {
+            synchronized (totemPopMap) {
+                for (PlayerEntity player : mc.world.getPlayers()) {
+                    if (!totemPopMap.containsKey(player.getUuid())) continue;
+
+                    if (player.deathTime > 0 || player.getHealth() <= 0) {
+                        int pops = totemPopMap.removeInt(player.getUuid());
+
+                        //ChatUtils.sendMsg(getChatId(player), Formatting.GRAY, "(highlight)%s (default)died after popping (highlight)%d (default)%s.", player.getEntityName(), pops, pops == 1 ? "totem" : "totems");
+                        String toSend = "Pops: " + pops + " | " + killmessage.get();
+                        ChatUtils.sendPlayerMsg(toSend);
+                    }
+                }
             }
         }
     }
