@@ -32,9 +32,11 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
         Vec3d offset = new Vec3d(f.getUnitVector());
 
         Vec3d fin = merge(Vec3d.of(BlockPos.ofFloored(center)).add(.5, 0, .5).add(offset.multiply(MAGIC_OFFSET)), f);
-        mc.player.setPosition(fin.x == 0 ? mc.player.getX() : fin.x,
+        mc.player.setPosition(
+                fin.x == 0 ? mc.player.getX() : fin.x,
                 mc.player.getY(),
-                fin.z == 0 ? mc.player.getZ() : fin.z);
+                fin.z == 0 ? mc.player.getZ() : fin.z
+        );
         toggle();
     }
 
