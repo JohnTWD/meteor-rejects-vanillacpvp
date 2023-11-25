@@ -7,7 +7,7 @@
 - [O]Manual Crystal
 - [N]Web burrow
 - [N]Tweaked No Entity Trace
-- Desync
+- [O]Desync with better features
 
 
 <div align="center">
