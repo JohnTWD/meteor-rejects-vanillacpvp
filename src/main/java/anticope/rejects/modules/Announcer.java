@@ -434,9 +434,7 @@ public class Announcer extends Module {
 
                     if (player.deathTime > 0 || player.getHealth() <= 0) {
                         int pops = totemPopMap.removeInt(player.getUuid());
-
-                        //ChatUtils.sendMsg(getChatId(player), Formatting.GRAY, "(highlight)%s (default)died after popping (highlight)%d (default)%s.", player.getEntityName(), pops, pops == 1 ? "totem" : "totems");
-                        String toSend = "Pops: " + pops + " | " + killmessage.get();
+                        String toSend = player.getEntityName() + "Pops: " + pops + " | " + killmessage.get();
                         ChatUtils.sendPlayerMsg(toSend);
                     }
                 }
