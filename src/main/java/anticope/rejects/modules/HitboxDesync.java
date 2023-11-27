@@ -2,14 +2,17 @@ package anticope.rejects.modules;
 
 import anticope.rejects.MeteorRejectsAddon;
 import meteordevelopment.meteorclient.events.world.TickEvent;
+import meteordevelopment.meteorclient.settings.BoolSetting;
+import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.util.math.*;
+import net.minecraft.world.World;
 
 import static java.lang.Math.abs;
 
@@ -18,30 +21,82 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
     public HitboxDesync() {
-        super(MeteorRejectsAddon.CATEGORY, "hitboxdesync", "csgo moment | how2use: enter a 2x1 hole, look in +X or +Z direction, on!");
+        super(MeteorRejectsAddon.CATEGORY, "hitboxdesync", "real csgo moment | how2use: enter a 2x1 hole, look in +X or +Z direction, on!");
     }
 
+    private final Setting<Boolean> automatic = sgGeneral.add(new BoolSetting.Builder()
+            .name("automatic")
+            .description("duh")
+            .defaultValue(true)
+            .build()
+    );
+
+    private final Setting<Boolean> onlyPositive = sgGeneral.add(new BoolSetting.Builder()
+            .name("onlyPositive")
+            .description("if should only turn on when +x +z")
+            .defaultValue(false)
+            .visible(automatic::get)
+            .build()
+    );
+
     private static final double MAGIC_OFFSET = .200009968835369999878673424677777777777761; // wtf is this shit
+
+    private boolean checkSingle(BlockPos center, BlockPos ignore, World world) {
+        BlockPos[] surroundingBlocks = { center.north(), center.south(), center.east(), center.west() };
+        for (BlockPos surroundingPos : surroundingBlocks) {
+            if (surroundingPos.equals(ignore)) continue;
+            Block sideBlok = world.getBlockState(surroundingPos).getBlock();
+            if (sideBlok != Blocks.BEDROCK && sideBlok != Blocks.OBSIDIAN) return false;
+        }
+        return true;
+    }
+    private boolean isDirectionGood(BlockPos home, BlockPos off, World world) {
+        BlockState offsBlock = world.getBlockState(off);
+        // Check if the offset are free
+        if (!offsBlock.isReplaceable()) return false;
+        if (!world.getBlockState(off.up()).isReplaceable()) return false;
+        if (world.getBlockState(off.down()).getBlock() != Blocks.OBSIDIAN && world.getBlockState(off.down()).getBlock() != Blocks.BEDROCK) return false; // must check if the offset can be placed on by crystals
+        if (!checkSingle(home, off, world)) return false;// check home hole
+        return checkSingle(off, home, world);//check offset
+    }
+
+    private boolean checkAllSides(BlockPos home, World world) {
+        BlockState homeBlock = world.getBlockState(home);
+        if (!homeBlock.isReplaceable()) return false; // see if home is free
+
+        if (isDirectionGood(home, home.south(), world)) return true; // hardcoded sides MY SIDES XD!!!!!!!!!!!!!!!!!
+        if (isDirectionGood(home, home.east(), world)) return true;
+        if (!onlyPositive.get()) {
+            if (isDirectionGood(home, home.north(), world)) return true; // -X
+            if (isDirectionGood(home, home.west(), world)) return true;  // -Z
+        }
+        return false;
+    }
 
     @EventHandler(priority = EventPriority.HIGH)
     private void onTick(TickEvent.Post event) {
         if (mc.world == null) return;
+
+        if (checkAllSides(mc.player.getBlockPos(), mc.world))
+            info("u in 2x1 nigga");
+        else info("now u not");
+        /*
         Direction f = mc.player.getHorizontalFacing();
         Box bb = mc.player.getBoundingBox();
         Vec3d center = bb.getCenter();
         Vec3d offset = new Vec3d(f.getUnitVector());
 
-        Vec3d fin = merge(Vec3d.of(BlockPos.ofFloored(center)).add(.5, 0, .5).add(offset.multiply(MAGIC_OFFSET)), f);
+        Vec3d fin = merge(Vec3d.of(BlockPos.ofFloored(center)).add(.5, 0, .5).add(offset.multiply(MAGIC_OFFSET)), offset);
         mc.player.setPosition(
                 fin.x == 0 ? mc.player.getX() : fin.x,
                 mc.player.getY(),
                 fin.z == 0 ? mc.player.getZ() : fin.z
         );
-        toggle();
+        toggle();*/
     }
 
-    private Vec3d merge(Vec3d a, Direction facing) {
-        return new Vec3d(a.x * abs(facing.getUnitVector().x()), a.y * abs(facing.getUnitVector().y()), a.z * abs(facing.getUnitVector().z()));
+    private Vec3d merge(Vec3d a, Vec3d Offset) {
+        return new Vec3d(a.x * abs(Offset.x), a.y * abs(Offset.y), a.z * abs(Offset.z));
     }
 
 }
