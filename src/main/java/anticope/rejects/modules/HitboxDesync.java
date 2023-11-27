@@ -60,31 +60,34 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
         return checkSingle(off, home, world);//check offset
     }
 
-    private boolean checkAllSides(BlockPos home, World world) {
+    private Vec3d findGodSide(BlockPos home, World world) {
         BlockState homeBlock = world.getBlockState(home);
-        if (!homeBlock.isReplaceable()) return false; // see if home is free
+        if (!homeBlock.isReplaceable()) return null; // see if home is free
 
-        if (isDirectionGood(home, home.south(), world)) return true; // hardcoded sides MY SIDES XD!!!!!!!!!!!!!!!!!
-        if (isDirectionGood(home, home.east(), world)) return true;
+        if (isDirectionGood(home, home.south(), world)) return new Vec3d(0,0,-1); // hardcoded sides MY SIDES XD!!!!!!!!!!!!!!!!!
+        if (isDirectionGood(home, home.east(), world)) return new Vec3d(-1, 0, 0);
         if (!onlyPositive.get()) {
-            if (isDirectionGood(home, home.north(), world)) return true; // -X
-            if (isDirectionGood(home, home.west(), world)) return true;  // -Z
+            if (isDirectionGood(home, home.north(), world)) return new Vec3d(0,0,1); // -X
+            if (isDirectionGood(home, home.west(), world)) return new Vec3d(1,0,0);  // -Z
         }
-        return false;
+        return null;
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     private void onTick(TickEvent.Post event) {
         if (mc.world == null) return;
 
-        if (checkAllSides(mc.player.getBlockPos(), mc.world))
-            info("u in 2x1 nigga");
-        else info("now u not");
-        /*
-        Direction f = mc.player.getHorizontalFacing();
+        if (!automatic.get()) {doCSGO(new Vec3d(mc.player.getHorizontalFacing().getUnitVector())); toggle();}
+        else {
+            Vec3d SETI = findGodSide(mc.player.getBlockPos(), mc.world); // search for extraterrestrial INTELLIJ IDEA
+            if (SETI == null) return;
+            doCSGO(SETI);
+        }
+    }
+
+    private void doCSGO(Vec3d offset) {
         Box bb = mc.player.getBoundingBox();
         Vec3d center = bb.getCenter();
-        Vec3d offset = new Vec3d(f.getUnitVector());
 
         Vec3d fin = merge(Vec3d.of(BlockPos.ofFloored(center)).add(.5, 0, .5).add(offset.multiply(MAGIC_OFFSET)), offset);
         mc.player.setPosition(
@@ -92,7 +95,6 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
                 mc.player.getY(),
                 fin.z == 0 ? mc.player.getZ() : fin.z
         );
-        toggle();*/
     }
 
     private Vec3d merge(Vec3d a, Vec3d Offset) {
