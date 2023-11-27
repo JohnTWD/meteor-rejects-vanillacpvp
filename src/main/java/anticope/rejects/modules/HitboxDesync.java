@@ -38,6 +38,13 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
             .visible(automatic::get)
             .build()
     );
+    private final Setting<Boolean> shouldShut = sgGeneral.add(new BoolSetting.Builder()
+            .name("offOnAutoActive")
+            .description("if should turn off when this activates when using automatic")
+            .defaultValue(false)
+            .visible(automatic::get)
+            .build()
+    );
 
     private static final double MAGIC_OFFSET = .200009968835369999878673424677777777777761; // wtf is this shit
 
@@ -64,11 +71,11 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
         BlockState homeBlock = world.getBlockState(home);
         if (!homeBlock.isReplaceable()) return null; // see if home is free
 
-        if (isDirectionGood(home, home.south(), world)) return new Vec3d(0,0,-1); // hardcoded sides MY SIDES XD!!!!!!!!!!!!!!!!!
-        if (isDirectionGood(home, home.east(), world)) return new Vec3d(-1, 0, 0);
+        if (isDirectionGood(home, home.south(), world)) return new Vec3d(0,0,1); // hardcoded sides MY SIDES XD!!!!!!!!!!!!!!!!!
+        if (isDirectionGood(home, home.east(), world)) return new Vec3d(1, 0, 0);
         if (!onlyPositive.get()) {
-            if (isDirectionGood(home, home.north(), world)) return new Vec3d(0,0,1); // -X
-            if (isDirectionGood(home, home.west(), world)) return new Vec3d(1,0,0);  // -Z
+            if (isDirectionGood(home, home.north(), world)) return new Vec3d(0,0,-1); // -X
+            if (isDirectionGood(home, home.west(), world)) return new Vec3d(-1,0,0);  // -Z
         }
         return null;
     }
@@ -82,6 +89,7 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
             Vec3d SETI = findGodSide(mc.player.getBlockPos(), mc.world); // search for extraterrestrial INTELLIJ IDEA
             if (SETI == null) return;
             doCSGO(SETI);
+            if (shouldShut.get()) toggle();
         }
     }
 
@@ -95,6 +103,7 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
                 mc.player.getY(),
                 fin.z == 0 ? mc.player.getZ() : fin.z
         );
+        info("just did the csgo!");
     }
 
     private Vec3d merge(Vec3d a, Vec3d Offset) {
