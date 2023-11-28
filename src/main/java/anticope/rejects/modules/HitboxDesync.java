@@ -85,7 +85,7 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
         if (mc.world == null) return;
 
         if (!automatic.get()) {doCSGO(new Vec3d(mc.player.getHorizontalFacing().getUnitVector())); toggle();}
-        else {
+        else if (mc.player.isOnGround()){
             Vec3d SETI = findGodSide(mc.player.getBlockPos(), mc.world); // search for extraterrestrial INTELLIJ IDEA
             if (SETI == null) return;
             doCSGO(SETI);
