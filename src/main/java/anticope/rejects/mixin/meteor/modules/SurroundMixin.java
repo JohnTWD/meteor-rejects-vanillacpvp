@@ -61,6 +61,9 @@ public abstract class SurroundMixin extends Module{
 
     @Inject(method = "onTick", at = @At("TAIL"), locals = LocalCapture.CAPTURE_FAILSOFT)
     private void onTick(TickEvent.Pre event, CallbackInfo ci) {
+        if (mc.world == null) return;
+        if (mc.player == null) return;
+
         if (protectTop.get()) {
             BlockPos pos = mc.player.getBlockPos().add(0,2,0);
             BlockUtils.place(pos, getInvBlock(), rotate.get(), 100, swing.get(), true);
@@ -69,6 +72,9 @@ public abstract class SurroundMixin extends Module{
 
     @Inject(method = "onRender3D", at = @At("TAIL"), locals = LocalCapture.CAPTURE_FAILSOFT)
     private void onRender3d(Render3DEvent event, CallbackInfo ci) {
+        if (mc.world == null) return;
+        if (mc.player == null) return;
+
         if (protectTop.get()) {
             event.renderer.box(mc.player.getBlockPos().add(0,2,0), normalSideColor.get(), normalLineColor.get(), shapeMode.get(), 0);
         }

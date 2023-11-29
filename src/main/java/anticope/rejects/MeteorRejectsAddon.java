@@ -30,6 +30,7 @@ public class MeteorRejectsAddon extends MeteorAddon {
         // Modules
         Modules modules = Modules.get();
 
+        modules.add(new TestModule());
         modules.add(((new HitboxDesync())));
         modules.add(new Announcer());
         modules.add(new PacketLogger());
