@@ -108,7 +108,6 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
             if (SETI == null) return; // note: SETI only returns the offset, not the actual pos (line unrelated)
             Vec3d SETIFoundAliensNotClickBait = Vec3d.of(mc.player.getBlockPos().down()).add(SETI);
             boolean yesICanPlace = canPlace(SETIFoundAliensNotClickBait, mc.player.getBoundingBox());
-            info("SETI %f %f %f", SETIFoundAliensNotClickBait.x, SETIFoundAliensNotClickBait.y, SETIFoundAliensNotClickBait.z);
             if (yesICanPlace && !hasDesynced) {
                 oldPos = mc.player.getPos();
                 doCSGO(SETI);
