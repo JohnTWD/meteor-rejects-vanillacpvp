@@ -105,9 +105,11 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
             }
 
             Vec3d SETI = findGodSide(mc.player.getBlockPos(), mc.world); // search for extraterrestrial INTELLIJ IDEA
-            if (SETI == null) return;
-            boolean yesICanPlace = canPlace(SETI, mc.player.getBoundingBox());
-            if (yesICanPlace && hasDesynced) {
+            if (SETI == null) return; // note: SETI only returns the offset, not the actual pos (line unrelated)
+            Vec3d SETIFoundAliensNotClickBait = Vec3d.of(mc.player.getBlockPos().down()).add(SETI);
+            boolean yesICanPlace = canPlace(SETIFoundAliensNotClickBait, mc.player.getBoundingBox());
+            info("SETI %f %f %f", SETIFoundAliensNotClickBait.x, SETIFoundAliensNotClickBait.y, SETIFoundAliensNotClickBait.z);
+            if (yesICanPlace && !hasDesynced) {
                 oldPos = mc.player.getPos();
                 doCSGO(SETI);
                 if (shouldShut.get()) toggle();
@@ -138,7 +140,7 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
                 fin.z == 0 ? mc.player.getZ() : fin.z
         );
         mc.player.setPosition(newPos);
-        info("just did the csgo! Desync @ %d %d %d", newPos.x, newPos.y, newPos.z);
+        info("just did the csgo! Desync @ %f %f %f", newPos.x, newPos.y, newPos.z);
     }
 
     private Vec3d merge(Vec3d a, Vec3d Offset) {
