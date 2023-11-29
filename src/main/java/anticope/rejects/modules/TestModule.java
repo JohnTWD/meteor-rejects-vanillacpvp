@@ -33,7 +33,7 @@ public class TestModule extends Module {
 
     private boolean canPlace(Vec3d toPlace, Box me) {
         Box placebox = new Box(toPlace, toPlace.add(1, 1, 1));
-        return me.intersects(placebox);
+        return !me.intersects(placebox);
     }
 
     @EventHandler(priority = EventPriority.HIGH)

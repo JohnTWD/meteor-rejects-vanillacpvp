@@ -11,6 +11,7 @@ import meteordevelopment.orbit.EventPriority;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 
@@ -80,17 +81,50 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
         return null;
     }
 
+    private boolean canPlace(Vec3d toPlace, Box me) {
+        Box placebox = new Box(toPlace, toPlace.add(1, 1, 1));
+        return !me.intersects(placebox);
+    }
+
+    private boolean hasMoved(PlayerEntity thePlayer) {
+        return  (thePlayer.prevY != mc.player.getY() || thePlayer.prevX != mc.player.getX() || thePlayer.prevZ != mc.player.getZ());
+    }
+    boolean hasDesynced = false;
+    Vec3d oldPos;
     @EventHandler(priority = EventPriority.HIGH)
     private void onTick(TickEvent.Post event) {
         if (mc.world == null) return;
+        if (mc.player == null) return;
 
         if (!automatic.get()) {doCSGO(new Vec3d(mc.player.getHorizontalFacing().getUnitVector())); toggle();}
         else if (mc.player.isOnGround()){
+            if (hasMoved(mc.player) && hasDesynced) {
+                hasDesynced = false;
+                oldPos = null;
+                return;
+            }
+
             Vec3d SETI = findGodSide(mc.player.getBlockPos(), mc.world); // search for extraterrestrial INTELLIJ IDEA
             if (SETI == null) return;
-            doCSGO(SETI);
-            if (shouldShut.get()) toggle();
+            boolean yesICanPlace = canPlace(SETI, mc.player.getBoundingBox());
+            if (yesICanPlace && hasDesynced) {
+                oldPos = mc.player.getPos();
+                doCSGO(SETI);
+                if (shouldShut.get()) toggle();
+                hasDesynced = true;
+            }
+            else if (!yesICanPlace && hasDesynced) { // i cant place but i can desync already lolz
+                info("Desync stopped working, retrying!");
+                mc.player.setPosition(oldPos);
+                hasDesynced = false;
+            }
         }
+    }
+
+    @Override
+    public void onActivate() {
+        hasDesynced = false;
+        oldPos = null;
     }
 
     private void doCSGO(Vec3d offset) {
@@ -98,12 +132,13 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
         Vec3d center = bb.getCenter();
 
         Vec3d fin = merge(Vec3d.of(BlockPos.ofFloored(center)).add(.5, 0, .5).add(offset.multiply(MAGIC_OFFSET)), offset);
-        mc.player.setPosition(
+        Vec3d newPos = new Vec3d(
                 fin.x == 0 ? mc.player.getX() : fin.x,
                 mc.player.getY(),
                 fin.z == 0 ? mc.player.getZ() : fin.z
         );
-        info("just did the csgo!");
+        mc.player.setPosition(newPos);
+        info("just did the csgo! Desync @ %d %d %d", newPos.x, newPos.y, newPos.z);
     }
 
     private Vec3d merge(Vec3d a, Vec3d Offset) {
