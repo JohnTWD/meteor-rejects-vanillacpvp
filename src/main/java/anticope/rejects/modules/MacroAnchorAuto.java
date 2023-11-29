@@ -129,6 +129,8 @@ public class MacroAnchorAuto extends Module {
         if (mc.crosshairTarget == null) return;
         HitResult allcrosshair = mc.crosshairTarget;
 
+        if (mainHand.getItem() != Items.GLOWSTONE && mainHand.getItem() != Items.RESPAWN_ANCHOR) return;
+
         if (mc.options.useKey.isPressed() && allcrosshair.getType() == HitResult.Type.BLOCK) {
             BlockHitResult asshair = (BlockHitResult)allcrosshair;
             assert mc.interactionManager != null;
