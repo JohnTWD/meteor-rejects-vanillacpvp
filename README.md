@@ -1,13 +1,15 @@
 # Hello sars this is my fork for meteor rejects
 ## TODO list: [D]one, [O]ngoing [N]ext
 - [D]Tweaked Auto Tool
-- [O]Macro for Anchors
-- - Make this less retarded on high ping servers
-- - - TODO: Find out why
+- [D]Macro for Anchors
 - [O]Manual Crystal
 - [N]Web burrow
 - [N]Tweaked No Entity Trace
-- [D]Desync with better features
+- [D]Desync with better features]
+- [N]Port City ESP from Velvet 1.18.12 MCBE
+- [N]Mega Block (for big blocks)
+- [N]ID Predict for CA
+- [N]Set Crystal Dead for CA
 
 
 <div align="center">
