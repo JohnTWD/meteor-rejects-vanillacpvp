@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(value = Surround.class, remap = false)
-public abstract class SurroundMixin extends Module{
+public abstract class SurroundMixin extends Module {
     @Shadow
     @Final
     private SettingGroup sgGeneral;
