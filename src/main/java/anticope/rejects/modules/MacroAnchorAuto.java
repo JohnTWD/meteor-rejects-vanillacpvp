@@ -159,7 +159,7 @@ public class MacroAnchorAuto extends Module {
 
             if (phase == 1 && sDel <= 0) { // switch to item glowstone
                 FindItemResult result = InvUtils.find(Items.GLOWSTONE);
-                if (!result.found()) {warning("completely out of GLOWSTONE! Disabling!"); toggle();}
+                // if (!result.found()) {warning("completely out of GLOWSTONE! Disabling!"); toggle();}
 
                 if (!shouldUseInv.get()) {
                     if (result.isHotbar())
