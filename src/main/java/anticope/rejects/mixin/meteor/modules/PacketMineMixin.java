@@ -10,7 +10,6 @@ import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.world.PacketMine;
 import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
-import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -59,7 +58,7 @@ public abstract class PacketMineMixin extends Module {
             this.blocks.removeIf(PacketMine.MyBlock::shouldRemove);
 
             if (this.shouldUpdateSlot) {
-                mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(mc.player.getInventory().selectedSlot));
+                InvUtils.swapBack();
                 shouldUpdateSlot = false;
             }
 
@@ -70,7 +69,7 @@ public abstract class PacketMineMixin extends Module {
                     if (block.isReady()) {
                         FindItemResult slot = InvUtils.findFastestTool(block.blockState);
                         if (!slot.found() || mc.player.getInventory().selectedSlot == slot.slot()) continue;
-                        mc.player.networkHandler.sendPacket(new UpdateSelectedSlotC2SPacket(slot.slot()));
+                        InvUtils.swap(slot.slot(), true);
                         swapped = true;
                         shouldUpdateSlot = true;
                         break;

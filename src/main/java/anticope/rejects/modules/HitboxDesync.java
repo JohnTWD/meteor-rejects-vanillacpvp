@@ -32,6 +32,13 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
             .build()
     );
 
+    private final Setting<Boolean> informationShow = sgGeneral.add(new BoolSetting.Builder()
+            .name("notify")
+            .description("duh")
+            .defaultValue(false)
+            .build()
+    );
+
     private final Setting<Boolean> onlyPositive = sgGeneral.add(new BoolSetting.Builder()
             .name("onlyPositive")
             .description("if should only turn on when +x +z")
@@ -139,7 +146,7 @@ public class HitboxDesync extends Module { // original code by mioclient https:/
                 fin.z == 0 ? mc.player.getZ() : fin.z
         );
         mc.player.setPosition(newPos);
-        info("just did the csgo! Desync @ %f %f %f", newPos.x, newPos.y, newPos.z);
+        if (informationShow.get()) info("just did the csgo! Desync @ %f %f %f", newPos.x, newPos.y, newPos.z);
     }
 
     private Vec3d merge(Vec3d a, Vec3d Offset) {

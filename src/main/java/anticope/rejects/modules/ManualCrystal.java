@@ -69,7 +69,7 @@ public class ManualCrystal extends Module {
     );
     private final Setting<Boolean> doPacketAttack = sgGeneral.add(new BoolSetting.Builder()
             .name("doPacketAttack")
-            .description("Since minecraft already auto places, use this to stop extra placing (timed rotations still apply)")
+            .description("use packets to attack crystals instead of normal attack")
             .defaultValue(false)
             .build()
     );
