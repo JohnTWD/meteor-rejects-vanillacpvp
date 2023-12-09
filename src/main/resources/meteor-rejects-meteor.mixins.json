@@ -21,6 +21,7 @@
     "modules.KillAuraMixin",
     "modules.NoRenderMixin",
     "modules.SurroundMixin",
-    "modules.PacketMineMixin"
+    "modules.PacketMineMixin",
+    "modules.CrystalAuraMixin"
   ]
 }
