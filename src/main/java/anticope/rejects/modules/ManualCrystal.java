@@ -136,18 +136,28 @@ public class ManualCrystal extends Module {
         if (forceSwitch.get()) InvUtils.swap(origSlot, false);
         resetPhase();
     }
+
+    private boolean handsHasCrystal() {
+        ItemStack mainHand = mc.player.getMainHandStack();
+        ItemStack offHand = mc.player.getOffHandStack();
+
+        if (mainHand == null || offHand == null) return false;
+
+        Item handItem = mainHand.getItem();
+        Item offItem = offHand.getItem();
+
+        return (handItem == Items.END_CRYSTAL || offItem == Items.END_CRYSTAL);
+    }
+
     @EventHandler(priority = EventPriority.HIGH)
     private void onTick(TickEvent.Post event) {
         
         if (mc.player == null) return;
-        ItemStack mainHand = mc.player.getMainHandStack();
-        if (mainHand == null) return;
+
         if (mc.crosshairTarget == null) return;
         HitResult allcrosshair = mc.crosshairTarget;
 
-        Item handItem = mainHand.getItem();
-
-        if (forceSwitch.get() && handItem != Items.END_CRYSTAL){
+        if (forceSwitch.get() && !handsHasCrystal()){
             FindItemResult result = InvUtils.find(Items.END_CRYSTAL);
             origSlot = mc.player.getInventory().selectedSlot;
 
@@ -160,7 +170,7 @@ public class ManualCrystal extends Module {
         }
 
         if (mc.options.useKey.isPressed()) {
-            if (handItem == Items.END_CRYSTAL) {
+            if (handsHasCrystal()) {
                 if (allcrosshair.getType() == HitResult.Type.MISS)
                     return;
                 crystalListFilter();
@@ -180,8 +190,12 @@ public class ManualCrystal extends Module {
                                 mc.player.setPitch((float) Rotations.getPitch(ptrPos) + randomOffsetPitch);
                                 mc.player.setHeadYaw(mc.player.getHeadYaw() + randomOffsetYaw);
                             }
-                            if (!doNaturalPlace.get())
-                                mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
+                            if (!doNaturalPlace.get()) {
+                                if (mc.player.getMainHandStack().getItem() == Items.END_CRYSTAL)
+                                    mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, asshair);
+                                else if (mc.player.getOffHandStack().getItem() == Items.END_CRYSTAL)
+                                    mc.interactionManager.interactBlock(mc.player, Hand.OFF_HAND, asshair);
+                            }
                         }
                     }
                     pDel = placeDelay.get();
@@ -216,8 +230,7 @@ public class ManualCrystal extends Module {
     @EventHandler
     private void onRender(Render3DEvent event) {
         if (mc.crosshairTarget == null) return;
-        Item handItem = mc.player.getMainHandStack().getItem();
-        if (handItem != Items.END_CRYSTAL) return;
+        if (!handsHasCrystal()) return;
 
         HitResult allcrosshair = mc.crosshairTarget;
         BlockPos ptrPos = null;
