@@ -14,6 +14,7 @@
 - [N]Better AutoAnchor
 - [N]Enemies
 - [N]Fly Chaser
+- [D]BowBomb
 
 
 <div align="center">
