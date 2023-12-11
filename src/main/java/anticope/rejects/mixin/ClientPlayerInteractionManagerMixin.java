@@ -18,8 +18,11 @@ public class ClientPlayerInteractionManagerMixin {
     public void onStopUsingItem(PlayerEntity player, CallbackInfo ci) {
         MeteorClient.EVENT_BUS.post(StopUsingItemEvent.get(player.getInventory().getMainHandStack()));
 
-        if (Modules.get().get(BowBomb.class).isActive() && player.getInventory().getMainHandStack().getItem().equals(Items.BOW)) {
-            BowBomb.addVelocityToPlayer();
+        {
+            BowBomb bowBombMod = Modules.get().get(BowBomb.class);
+            if (bowBombMod.isActive() && player.getInventory().getMainHandStack().getItem().equals(Items.BOW)) {
+                bowBombMod.addVelocityToPlayer();
+            }
         }
     }
 }
