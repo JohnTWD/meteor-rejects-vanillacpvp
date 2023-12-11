@@ -39,6 +39,7 @@ public class MeteorRejectsAddon extends MeteorAddon {
         modules.add(new MacroAnchorAuto());
         modules.add(new AutoMend());
         modules.add(new BowBomb());
+        modules.add(new AutoCityPlus());
 
         modules.add(new AimAssist());
         modules.add(new AntiBot());
