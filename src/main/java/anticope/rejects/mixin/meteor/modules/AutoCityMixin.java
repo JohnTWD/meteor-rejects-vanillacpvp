@@ -15,6 +15,7 @@ import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.meteorclient.utils.player.Rotations;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
@@ -37,11 +38,11 @@ public abstract class AutoCityMixin extends Module {
 
     @Mutable @Shadow @Final private Setting<Boolean> rotate;
     @Mutable @Shadow @Final private Setting<Boolean> chatInfo;
-    @Mutable @Shadow @Final private Setting<Integer> breakRange;
+    @Mutable @Shadow @Final private Setting<Double> breakRange;
 
     @Shadow private BlockPos targetPos;
 
-    public AutoCityMixin(Category category, String name, String description, Setting<Boolean> rotate, Setting<Boolean> chatInfo, Setting<Integer> breakRange) {
+    public AutoCityMixin(Category category, String name, String description, Setting<Boolean> rotate, Setting<Boolean> chatInfo, Setting<Double> breakRange) {
         super(category, name, description);
         this.rotate = rotate;
         this.chatInfo = chatInfo;
@@ -100,13 +101,12 @@ public abstract class AutoCityMixin extends Module {
     @Inject(method = "onTick", at = @At("HEAD"), locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true)
     private void onTick(TickEvent.Pre event, CallbackInfo ci) {
         if (instamine.get()) {
-
-            /*if (PlayerUtils.squaredDistanceTo(targetPos) > Math.pow(breakRange.get().doubleValue(), 2.0)) {
+            if (PlayerUtils.squaredDistanceTo(targetPos) > Math.pow(breakRange.get(), 2.0)) {
                 if (chatInfo.get())
                     error("Block too far");
                 toggle();
                 return;
-            }*/
+            }
             if (!pick.isHotbar()) {
                 error("No pickaxe found... disabling.");
                 toggle();
