@@ -31,13 +31,14 @@ public class MeteorRejectsAddon extends MeteorAddon {
         Modules modules = Modules.get();
 
         modules.add(new TestModule());
-        modules.add(new BowBomb());
         modules.add(((new HitboxDesync())));
         modules.add(new Announcer());
         modules.add(new PacketLogger());
         modules.add(new ManualCrystal());
         modules.add(new TweakedAutoTool());
         modules.add(new MacroAnchorAuto());
+        modules.add(new AutoMend());
+        modules.add(new BowBomb());
 
         modules.add(new AimAssist());
         modules.add(new AntiBot());
