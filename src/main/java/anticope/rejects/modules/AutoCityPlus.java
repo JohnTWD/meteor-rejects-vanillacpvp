@@ -1,5 +1,6 @@
 package anticope.rejects.modules;
 // stolen from https://github.com/RickyTheRacc/banana-for-everyone/blob/main/src/main/java/bananaplus/modules/combat/AutoCityPlus.java#L29
+// low priority, i will never fix this
 
 import anticope.rejects.MeteorRejectsAddon;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
@@ -240,7 +241,7 @@ public class AutoCityPlus extends Module {
     private Direction direction;
 
     private boolean isBurrowed(PlayerEntity targetEntity, BlastResistantType type) {
-        BlockPos playerPos = new BlockPos((int) targetEntity.getX(), (int) Math.round(targetEntity.getY() + 0.4), (int) targetEntity.getZ());
+        BlockPos playerPos = BlockPos.ofFloored(new Vec3d(targetEntity.getX(), (int) Math.round(targetEntity.getY() + 0.4), targetEntity.getZ()));
         // Adding a 0.4 to the Y check since sometimes when the player moves around weirdly/ after chorusing they tend to clip into the block under them
         return isBlastResistant(playerPos, type);
     }
@@ -361,13 +362,6 @@ public class AutoCityPlus extends Module {
         }
     }
 
-
-    private BlockPos getCityBlock(PlayerEntity player) {
-        List<BlockPos> posList = getSurroundBlocks(player);
-        posList.sort(Comparator.comparingDouble(this::distanceFromEye));
-        return posList.isEmpty() ? null : posList.get(0);
-    }
-
     @Override
     public void onActivate() {
         sentMessage = false;
@@ -399,9 +393,9 @@ public class AutoCityPlus extends Module {
                     burrowMessage = true;
                 }
             } else if (avoidSelf.get()) {
-                blockTarget = getTargetBlock(playerTarget);
-                if (blockTarget == null && lastResort.get()) blockTarget = getCityBlock(playerTarget);
-            } else blockTarget = getCityBlock(playerTarget);
+                blockTarget =  EntityUtils.getCityBlock(playerTarget);
+                if (blockTarget == null && lastResort.get()) blockTarget = EntityUtils.getCityBlock(playerTarget);
+            } else blockTarget = EntityUtils.getCityBlock(playerTarget);
         }
     }
 
@@ -444,8 +438,8 @@ public class AutoCityPlus extends Module {
                 return;
             } else if (avoidSelf.get()) {
                 blockTarget = getTargetBlock(playerTarget);
-                if (blockTarget == null && lastResort.get()) blockTarget = getCityBlock(playerTarget);
-            } else blockTarget = getCityBlock(playerTarget);
+                if (blockTarget == null && lastResort.get()) blockTarget = EntityUtils.getCityBlock(playerTarget);
+            } else blockTarget = EntityUtils.getCityBlock(playerTarget);
         }
 
         if (blockTarget == null) {
@@ -495,8 +489,9 @@ public class AutoCityPlus extends Module {
             if (playerTarget == null || !playerTarget.isAlive() || count >= instaToggle.get()) {
                 toggle();
             }
-
+            if (blockTarget == null) return;
             direction = rayTraceCheck(blockTarget, true);
+
             if (!mc.world.isAir(blockTarget)) {
                 instamine(blockTarget);
             } else ++count;
