@@ -16,7 +16,9 @@ import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.meteorclient.utils.player.Rotations;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.spongepowered.asm.mixin.*;
@@ -33,14 +35,17 @@ public abstract class AutoCityMixin extends Module {
 
     @Shadow @Final private Setting<AutoCity.SwitchMode> switchMode;
 
-    @Shadow @Final private Setting<Boolean> rotate;
-    @Shadow @Final private Setting<Boolean> chatInfo;
-    @Shadow @Final private Setting<Integer> breakRange;
+    @Mutable @Shadow @Final private Setting<Boolean> rotate;
+    @Mutable @Shadow @Final private Setting<Boolean> chatInfo;
+    @Mutable @Shadow @Final private Setting<Integer> breakRange;
 
     @Shadow private BlockPos targetPos;
 
-    public AutoCityMixin(Category category, String name, String description) {
+    public AutoCityMixin(Category category, String name, String description, Setting<Boolean> rotate, Setting<Boolean> chatInfo, Setting<Integer> breakRange) {
         super(category, name, description);
+        this.rotate = rotate;
+        this.chatInfo = chatInfo;
+        this.breakRange = breakRange;
     }
     @Unique
     private Setting<Boolean> activateCA;
@@ -93,12 +98,12 @@ public abstract class AutoCityMixin extends Module {
     private void onTick(TickEvent.Pre event, CallbackInfo ci) {
         if (instamine.get()) {
 
-            if (PlayerUtils.squaredDistanceTo(targetPos) > Math.pow(this.breakRange.get().doubleValue(), 2)) {
-                if (this.chatInfo.get())
+            /*if (PlayerUtils.squaredDistanceTo(targetPos) > Math.pow(breakRange.get().doubleValue(), 2.0)) {
+                if (chatInfo.get())
                     error("Block too far");
                 toggle();
                 return;
-            }
+            }*/
             if (!pick.isHotbar()) {
                 error("No pickaxe found... disabling.");
                 toggle();
@@ -107,19 +112,26 @@ public abstract class AutoCityMixin extends Module {
 
             if (oDel >= tickDelay.get()) {
                 oDel = 0;
-                InvUtils.swap(this.pick.slot(), this.switchMode.get() == AutoCity.SwitchMode.Silent);
+                InvUtils.swap(pick.slot(), switchMode.get() == AutoCity.SwitchMode.Silent);
                 Direction direction = BlockUtils.getDirection(targetPos);
-                if (this.rotate.get())
-                    Rotations.rotate(Rotations.getYaw(this.targetPos), Rotations.getPitch(this.targetPos), () -> mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, targetPos, direction)));
-                else
-                    mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, targetPos, direction));
+                if (rotate.get())
+                    Rotations.rotate(Rotations.getYaw(targetPos), Rotations.getPitch(targetPos));
+                mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
+                mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, targetPos, direction));
             } else oDel++;
             ci.cancel();
         }
     }
 
-    @Inject(method="mine", at = @At("TAIL"))
+    @Inject(method="mine", at = @At("TAIL"), cancellable = true)
     private void onMine(boolean done, CallbackInfo info) {
+        if (!done && instamine.get()) {
+            mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
+            Direction direction = BlockUtils.getDirection(targetPos);
+            mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, targetPos, direction));
+
+            info.cancel();
+        }
         if (done) {
             if (switchToCrystals.get()) {
                 FindItemResult result = InvUtils.find(Items.END_CRYSTAL);
