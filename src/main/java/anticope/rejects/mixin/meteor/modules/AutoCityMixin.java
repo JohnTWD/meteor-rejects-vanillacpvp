@@ -35,8 +35,8 @@ public abstract class AutoCityMixin extends Module {
     }
 
     @Inject(method="mine", at = @At("TAIL"))
-    private void onMine(CallbackInfo info) {
-        if (activateCA.get())
+    private void onMine(boolean done, CallbackInfo info) {
+        if (done && activateCA.get())
             Modules.get().get(CrystalAura.class).toggle();
     }
 
