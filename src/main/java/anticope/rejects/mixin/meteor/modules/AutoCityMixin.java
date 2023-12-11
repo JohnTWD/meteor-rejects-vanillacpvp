@@ -93,7 +93,7 @@ public abstract class AutoCityMixin extends Module {
     private void onTick(TickEvent.Pre event, CallbackInfo ci) {
         if (instamine.get()) {
 
-            if (PlayerUtils.squaredDistanceTo(targetPos) > Math.pow(this.breakRange.get(), 2)) {
+            if (PlayerUtils.squaredDistanceTo(targetPos) > Math.pow(this.breakRange.get().doubleValue(), 2)) {
                 if (this.chatInfo.get())
                     error("Block too far");
                 toggle();
@@ -104,7 +104,6 @@ public abstract class AutoCityMixin extends Module {
                 toggle();
                 return;
             }
-
 
             if (oDel >= tickDelay.get()) {
                 oDel = 0;
