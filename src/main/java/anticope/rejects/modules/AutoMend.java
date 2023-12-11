@@ -27,8 +27,8 @@ public class AutoMend extends Module {
     private final SettingGroup sgMisc = settings.createGroup("Misc");
 
     private final Setting<Boolean> autoMend = sgAutomation.add(new BoolSetting.Builder().name("auto-mend").defaultValue(false).build());
-    private final Setting<Integer> activePercent = sgAutomation.add(new IntSetting.Builder().name("activation percentage").defaultValue(50).range(0, 100).visible(autoMend::get).build());
-    private final Setting<Integer> delay = sgAutomation.add(new IntSetting.Builder().name("delay").defaultValue(5).range(0,20).visible(autoMend::get).build());
+    private final Setting<Integer> activePercent = sgAutomation.add(new IntSetting.Builder().name("activation percentage").defaultValue(50).range(0, 100).sliderRange(0,100).visible(autoMend::get).build());
+    private final Setting<Integer> delay = sgAutomation.add(new IntSetting.Builder().name("delay").defaultValue(5).range(0,20).sliderRange(0,20).visible(autoMend::get).build());
 
     private final Setting<SwapMode> swapMode = sgGeneral.add(new EnumSetting.Builder<SwapMode>().name("swap").defaultValue(SwapMode.Inventory).build());
     private final Setting<Boolean> refill = sgGeneral.add(new BoolSetting.Builder().name("refill").defaultValue(false).visible(() -> swapMode.get() != SwapMode.Inventory).build());
