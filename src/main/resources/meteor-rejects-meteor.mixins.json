@@ -22,6 +22,7 @@
     "modules.NoRenderMixin",
     "modules.SurroundMixin",
     "modules.PacketMineMixin",
-    "modules.CrystalAuraMixin"
+    "modules.CrystalAuraMixin",
+    "modules.AutoCityMixin"
   ]
 }
