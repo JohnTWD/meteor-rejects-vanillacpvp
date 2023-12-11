@@ -27,7 +27,7 @@ public class AutoMend extends Module {
     private final SettingGroup sgMisc = settings.createGroup("Misc");
 
     private final Setting<Boolean> autoMend = sgAutomation.add(new BoolSetting.Builder().name("auto-mend").defaultValue(false).build());
-    private final Setting<Integer> takenDamage = sgAutomation.add(new IntSetting.Builder().name("taken-damage").defaultValue(100).range(0, 500).visible(autoMend::get).build());
+    private final Setting<Integer> activePercent = sgAutomation.add(new IntSetting.Builder().name("activation percentage").defaultValue(50).range(0, 100).visible(autoMend::get).build());
     private final Setting<Integer> delay = sgAutomation.add(new IntSetting.Builder().name("delay").defaultValue(5).range(0,20).visible(autoMend::get).build());
 
     private final Setting<SwapMode> swapMode = sgGeneral.add(new EnumSetting.Builder<SwapMode>().name("swap").defaultValue(SwapMode.Inventory).build());
@@ -83,7 +83,12 @@ public class AutoMend extends Module {
             for (ItemStack itemStack : mc.player.getInventory().armor) {
                 if (itemStack.isEmpty()) continue;
                 if (EnchantmentHelper.getLevel(Enchantments.MENDING, itemStack) < 1) continue;
-                if (itemStack.getDamage() >= takenDamage.get()) doMend();
+                float maxDmg = itemStack.getMaxDamage();
+                float nowDmg = itemStack.getDamage();
+                float percentage = 100*((maxDmg-nowDmg) / maxDmg);
+
+                if (percentage < activePercent.get()) doMend();
+
             }
         }
     }
