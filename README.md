@@ -13,6 +13,7 @@
 - [N]Baritone Bot for grinding stuff
 - [N]Better AutoAnchor
 - [N]Enemies
+- [N]CA switch option using place(), check if it works on CC
 - [N]Fly Chaser
 - [D]BowBomb
 
