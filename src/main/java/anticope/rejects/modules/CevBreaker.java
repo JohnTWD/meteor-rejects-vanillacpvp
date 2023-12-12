@@ -312,7 +312,7 @@ public class CevBreaker extends Module {
             } else {
                 if (!offhand && !mainhand) mc.player.getInventory().selectedSlot = crystalSlot;
                 Hand hand = offhand ? Hand.OFF_HAND : Hand.MAIN_HAND;
-                BlockHitResult result = new BlockHitResult(mc.player.getPos(), blockPos.getY() < mc.player.getY() ? Direction.UP : Direction.DOWN, blockPos, false);
+                BlockHitResult result = new BlockHitResult(Vec3d.ofCenter(blockPos), Direction.UP, blockPos, false);
                 if (swing.get()) mc.player.swingHand(Hand.MAIN_HAND);
                 else mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
                 if (rotate.get()) {
