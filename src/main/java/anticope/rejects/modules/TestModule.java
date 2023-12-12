@@ -37,7 +37,7 @@ public class TestModule extends Module {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    private void onTick(TickEvent.Post event) {
+    private void onTick(TickEvent event) {
         if (mc.world == null) return;
         if (mc.player == null) return;
 

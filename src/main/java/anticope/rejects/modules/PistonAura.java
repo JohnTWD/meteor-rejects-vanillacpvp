@@ -1,7 +1,5 @@
 package anticope.rejects.modules;
 
-// stolen from https://github.com/Volcanware/Envy-Client/blob/1.19.3/src/main/java/mathax/client/systems/modules/combat/PistonAura.java#L26
-
 import anticope.rejects.MeteorRejectsAddon;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.SettingGroup;
@@ -57,8 +55,27 @@ public class PistonAura extends Module {
 
     private final Setting<Boolean> trap = sgGeneral.add(new BoolSetting.Builder()
             .name("trap")
-            .description("Traps the enemy player.")
+            .description("Traps the enemy player. (Will not work if server disallows air place!)")
             .defaultValue(true)
+            .build()
+    );
+
+    private final Setting<Boolean> grabInv = sgGeneral.add(new BoolSetting.Builder()
+            .name("grabfrominv")
+            .description("Use inventory items instead of just hotbar")
+            .defaultValue(true)
+            .build()
+    );
+
+    public enum redstoneMethod {
+        redstoneBlock,
+        torch,
+        button
+    }
+
+    private final Setting<PistonAura.redstoneMethod> activationType = sgGeneral.add(new EnumSetting.Builder<redstoneMethod>()
+            .name("Redstone Activation Method")
+            .defaultValue(redstoneMethod.redstoneBlock)
             .build()
     );
 
@@ -67,15 +84,14 @@ public class PistonAura extends Module {
     }
 
     @EventHandler
-    private void onTick(TickEvent.Pre event) {
-        if (TargetUtils.isBadTarget(target, targetRange.get())) target = TargetUtils.getPlayerTarget(targetRange.get(), priority.get());
-        if (TargetUtils.isBadTarget(target, targetRange.get())) return;
-
+    private void onPreTick(TickEvent.Pre event) {
+        if (mc == null || mc.player == null || mc.world == null || mc.interactionManager == null) return;
+        hasItems(grabInv.get());
     }
 
     private boolean hasEnoughSpace(BlockPos direction, BlockPos enemyOrigin, boolean checkHavSupport) { // ensure direction has enough space
         BlockPos checkMe = enemyOrigin;
-        for (int i = 0 ; i >=3 ; i++) {
+        for (int i = 0; i >= 3; i++) {
             checkMe = checkMe.add(direction);
             if (mc.world.getBlockState(checkMe).getBlock() != Blocks.AIR)
                 return false;
@@ -85,36 +101,49 @@ public class PistonAura extends Module {
 
     private boolean attemptLayer(Direction direction, BlockPos enemyOrigin, int tick) {
         // steps: piston, then crystal, then redstone
-
+        return false;
     }
 
-    private void hasItems() {
+    private FindItemResult findButton() {
+        return InvUtils.find(itemStack -> itemStack.getItem() == Items.STONE_BUTTON); // low prio todo: add more buttons, but like, non repetitively
+    }
+
+    private void hasItems(boolean checkHotbarOnly) {
         FindItemResult obsidian = InvUtils.findInHotbar(Items.OBSIDIAN);
-        if (!obsidian.isHotbar() && !obsidian.isOffhand()) {
-            info("No obsidian found in hotbar, disabling...");
+        if (!obsidian.found() || (checkHotbarOnly && !obsidian.isHotbar())) {
+            info("No obsidian found, disabling...");
             toggle();
             return;
         }
 
         FindItemResult piston = InvUtils.findInHotbar(Items.PISTON);
-        if (!piston.isHotbar() && !piston.isOffhand()) {
-            info("No piston found in hotbar, disabling...");
+        if (!obsidian.found() || (checkHotbarOnly && !piston.isHotbar())) {
+            info("No piston found, disabling...");
             toggle();
             return;
         }
 
         FindItemResult crystal = InvUtils.findInHotbar(Items.END_CRYSTAL);
-        if (!crystal.isHotbar() && !crystal.isOffhand()) {
-            info("No crystal found in hotbar, disabling...");
+        if (!obsidian.found() || (checkHotbarOnly && !crystal.isHotbar())) {
+            info("No crystal found, disabling...");
             toggle();
             return;
         }
 
-        FindItemResult redstoneBlock = InvUtils.findInHotbar(Items.REDSTONE_BLOCK);
-        if (!redstoneBlock.isHotbar() && !redstoneBlock.isOffhand()) {
-            info("No redstone block found in hotbar, disabling...");
+        FindItemResult activator = null;
+        switch (activationType.get()) {
+            case redstoneBlock:
+                activator = InvUtils.find(Items.REDSTONE_BLOCK);
+                break;
+            case torch:
+                activator = InvUtils.find(Items.REDSTONE_TORCH);
+                break;
+            case button:
+                activator = findButton();
+        }
+        if (activator != null && !activator.found() || (checkHotbarOnly && !activator.isHotbar())) {
+            info("No activator, disabling...");
             toggle();
-            return;
         }
     }
 }
