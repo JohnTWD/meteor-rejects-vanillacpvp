@@ -122,8 +122,12 @@ public class PistonAura extends Module {
 
         if (TargetUtils.isBadTarget(enemy, targetRange.get())) {
             enemy = TargetUtils.getPlayerTarget(targetRange.get(), priority.get());
-            if (TargetUtils.isBadTarget(enemy, targetRange.get())) return;
+            if (TargetUtils.isBadTarget(enemy, targetRange.get())) {
+                enemy = null;
+                return;
+            }
         }
+
 
         hasItems(grabInv.get());
         PlaceData tempFocus = null;
