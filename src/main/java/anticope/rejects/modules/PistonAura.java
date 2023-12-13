@@ -191,20 +191,30 @@ public class PistonAura extends Module {
     }
 
     private BlockPos[] getSurroundingPosExceptFace(BlockPos center, Direction excludedFace) {
-        BlockPos[] surroundingBlocks = new BlockPos[6];
+        BlockPos[] surroundingBlocks = new BlockPos[5];
+        Direction[] debugDir = new Direction[6];
         int i = 0;
+        surroundingBlocks[4] = center.offset(Direction.UP); // reserve UP direction as last element
+        debugDir[4] = (Direction.UP); // reserve UP direction as last element
         for (Direction facing : Direction.values()) {
-            if (facing == excludedFace || facing == Direction.UP) {
+            if (facing == excludedFace || facing == Direction.UP) // skip over exclusion and UP
                 continue;
-            }
 
             BlockPos offsetPos = center.offset(facing);
-            if(WorldUtils.needAirPlace(offsetPos)) surroundingBlocks[4-i] = offsetPos;  // prioritize blocks with supports
-            else surroundingBlocks[i] = offsetPos;
-
+            if(!WorldUtils.needAirPlace(offsetPos)) {
+                surroundingBlocks[i] = offsetPos;
+                debugDir[i] = facing;
+            }  // prioritize blocks with supports
+            else {
+                surroundingBlocks[4 - i] = offsetPos;
+                debugDir[4-i] = facing;
+            } // blocks that need airplacing go to the back
             i++;
         }
-        surroundingBlocks[5] = center.offset(Direction.UP); // reserve UP direction as last
+        for (Direction d : debugDir) {
+            info(d.getName());
+        }
+
         return surroundingBlocks;
     }
 
@@ -218,7 +228,6 @@ public class PistonAura extends Module {
                 break;
             }
         }
-
         return theOne;
     }
 
