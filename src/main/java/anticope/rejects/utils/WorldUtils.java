@@ -137,8 +137,6 @@ public class WorldUtils {
     }
 
     public static boolean canCrystalPlace(BlockPos loc) {
-        if (mc.player == null) return false;
-        if (mc.world == null) return false;
         BlockState upstate = mc.world.getBlockState(loc.up());
         BlockState state = mc.world.getBlockState(loc);
 

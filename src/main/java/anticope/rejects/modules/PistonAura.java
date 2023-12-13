@@ -192,7 +192,7 @@ public class PistonAura extends Module {
             getPowerPlacement(pistonLoc),
         };
 
-        if (!WorldUtils.canCrystalPlace(checkMe[1])) return false;
+        if (!WorldUtils.canCrystalPlace(checkMe[1].down())) return false;
 
         for (BlockPos rtn: checkMe) {
             if (!BlockUtils.canPlace(rtn,true))
