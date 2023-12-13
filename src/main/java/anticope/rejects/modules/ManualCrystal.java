@@ -1,6 +1,7 @@
 package anticope.rejects.modules;
 
 import anticope.rejects.MeteorRejectsAddon;
+import anticope.rejects.utils.WorldUtils;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.*;
@@ -179,7 +180,7 @@ public class ManualCrystal extends Module {
                     if (allcrosshair.getType() == HitResult.Type.BLOCK) {
                         BlockHitResult asshair = (BlockHitResult) allcrosshair;
                         BlockPos ptrPos = asshair.getBlockPos();
-                        if (canPlace(ptrPos)) {
+                        if (WorldUtils.canCrystalPlace(ptrPos)) {
                             if (rotMode.get() == RotateMode.packet) {
                                 float randomOffsetYaw = (float) Utils.random(-.14, .88);
                                 float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
@@ -237,7 +238,7 @@ public class ManualCrystal extends Module {
         if (allcrosshair.getType() == HitResult.Type.BLOCK) {
             BlockHitResult asshair = (BlockHitResult) allcrosshair;
             ptrPos = asshair.getBlockPos();
-            if (canPlace(ptrPos))
+            if (WorldUtils.canCrystalPlace(ptrPos))
                 event.renderer.box(ptrPos, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
 
         } else if (allcrosshair.getType() == HitResult.Type.ENTITY) {
@@ -337,13 +338,5 @@ public class ManualCrystal extends Module {
     }
 
     
-    private boolean canPlace(BlockPos loc) {
-        if (mc.player == null) return false;
-        if (mc.world == null) return false;
-        BlockState upstate = mc.world.getBlockState(loc.up());
-        BlockState state = mc.world.getBlockState(loc);
 
-        return ((state.getBlock() == Blocks.OBSIDIAN || state.getBlock() == Blocks.BEDROCK) && upstate.getBlock() == Blocks.AIR);
-    }
- 
 }

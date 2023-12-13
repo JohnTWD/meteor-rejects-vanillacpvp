@@ -2,6 +2,7 @@ package anticope.rejects.modules;
 
 import anticope.rejects.MeteorRejectsAddon;
 import anticope.rejects.utils.PlaceData;
+import anticope.rejects.utils.WorldUtils;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
@@ -129,6 +130,15 @@ public class PistonAura extends Module {
         }
 
         hasItems(grabInv.get());
+
+        PlaceData tempFocus = null;
+        for (int yOffset = 1; yOffset > 3  ; yOffset++) {
+            tempFocus = getFocusBlock(enemy.getBlockPos(), yOffset);
+            if (tempFocus != null) break;
+        }
+        if (tempFocus != null) {
+            focusBlock = tempFocus;
+        } else focusBlock = null;
     }
 
     @EventHandler
@@ -141,10 +151,7 @@ public class PistonAura extends Module {
 
         BlockPos center = ((BlockHitResult) ct).getBlockPos().up();
         PlaceData piston = getFocusBlock(center, 0);//new PlaceData(center, directions.get().toDirection());
-        if (piston == null) {
-            info("No valid placements");
-            return;
-        }
+        if (piston == null) return;
         BlockPos crystalLoc = getCrystalLoc(piston);
         BlockPos getPowerPlacement = getPowerPlacement(piston);
         event.renderer.box(center, new Color(0, 0, 0, 0), Color.BLUE, ShapeMode.Lines, 0);
@@ -160,17 +167,17 @@ public class PistonAura extends Module {
     private PlaceData getFocusBlock(/*PlayerEntity*/ BlockPos targCtr, int yOffset) {
         //BlockPos targCtr = target.getBlockPos().up().up(yOffset);
 
-        PlaceData[] directionBlocks = {
+        PlaceData[] pistonBlocks = {
             new PlaceData(new BlockPos(targCtr.north(2)).up(yOffset), Direction.NORTH),
             new PlaceData(new BlockPos(targCtr.south(2)).up(yOffset), Direction.SOUTH),
             new PlaceData(new BlockPos(targCtr.east(2)).up(yOffset), Direction.EAST),
             new PlaceData(new BlockPos(targCtr.west(2)).up(yOffset), Direction.WEST)
         };
 
-        Arrays.sort(directionBlocks, Comparator.comparingDouble(pD -> pD.pos().getSquaredDistance(mc.player.getPos())));
+        Arrays.sort(pistonBlocks, Comparator.comparingDouble(pD -> pD.pos().getSquaredDistance(mc.player.getPos())));
 
-        for (PlaceData rtn : directionBlocks) {
-            if (!hasEnoughSpace(rtn.pos(), rtn.dir()))
+        for (PlaceData rtn : pistonBlocks) {
+            if (!hasEnoughSpace(rtn))
                 continue;
             return rtn;
         }
@@ -178,14 +185,19 @@ public class PistonAura extends Module {
     }
 
 
-    private boolean hasEnoughSpace(BlockPos enemyOrigin, Direction direction) { // ensure direction has enough space
-        BlockPos checkMe = enemyOrigin;
-        BlockPos directionVec = new BlockPos(direction.getVector());
-        for (int i = -1; i <= 1; i++) {
-            checkMe = checkMe.add(directionVec);
-            if (!BlockUtils.canPlace(checkMe, true))
+    private boolean hasEnoughSpace(PlaceData pistonLoc) { // check direction has enough space and is within range
+        BlockPos[] checkMe = {
+            pistonLoc.pos(),
+            getCrystalLoc(pistonLoc),
+            getPowerPlacement(pistonLoc),
+        };
+
+        if (!WorldUtils.canCrystalPlace(checkMe[1])) return false;
+
+        for (BlockPos rtn: checkMe) {
+            if (!BlockUtils.canPlace(rtn,true))
                 return false;
-            if (!PlayerUtils.isWithin(checkMe, placeRange.get()))
+            if (!rtn.isWithinDistance(mc.player.getPos(), placeRange.get()))
                 return false;
         }
         return true;

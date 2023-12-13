@@ -4,6 +4,8 @@ import meteordevelopment.meteorclient.mixininterface.IVec3d;
 import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.meteorclient.utils.player.Rotations;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
@@ -133,4 +135,14 @@ public class WorldUtils {
         else action.run();
         return true;
     }
+
+    public static boolean canCrystalPlace(BlockPos loc) {
+        if (mc.player == null) return false;
+        if (mc.world == null) return false;
+        BlockState upstate = mc.world.getBlockState(loc.up());
+        BlockState state = mc.world.getBlockState(loc);
+
+        return ((state.getBlock() == Blocks.OBSIDIAN || state.getBlock() == Blocks.BEDROCK) && upstate.getBlock() == Blocks.AIR);
+    }
+
 }
