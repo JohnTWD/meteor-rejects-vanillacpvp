@@ -40,7 +40,7 @@ public class MeteorRejectsAddon extends MeteorAddon {
         modules.add(new AutoMend());
         modules.add(new BowBomb());
         modules.add(new AutoCityPlus());
-        modules.add(new PistonAura());
+        //modules.add(new PistonAura());
         modules.add(new CevBreaker());
 
         modules.add(new AimAssist());

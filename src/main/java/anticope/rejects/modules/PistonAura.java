@@ -1,18 +1,18 @@
 package anticope.rejects.modules;
 
 import anticope.rejects.MeteorRejectsAddon;
+import anticope.rejects.utils.PlaceData;
+import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.settings.Setting;
+import meteordevelopment.meteorclient.systems.friends.Friends;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.utils.entity.EntityUtils;
 import meteordevelopment.meteorclient.utils.entity.SortPriority;
 import meteordevelopment.meteorclient.utils.entity.TargetUtils;
-import meteordevelopment.meteorclient.utils.player.DamageUtils;
-import meteordevelopment.meteorclient.utils.player.FindItemResult;
-import meteordevelopment.meteorclient.utils.player.InvUtils;
-import meteordevelopment.meteorclient.utils.player.Rotations;
+import meteordevelopment.meteorclient.utils.player.*;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -27,6 +27,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
+
+import static meteordevelopment.meteorclient.utils.world.CardinalDirection.fromDirection;
 
 public class PistonAura extends Module {
     private PlayerEntity target;
@@ -79,14 +81,57 @@ public class PistonAura extends Module {
             .build()
     );
 
+    private final Setting<Boolean> pauseOnEat = sgGeneral.add(new BoolSetting.Builder()
+            .name("pause-on-eat")
+            .description("Pauses while eating.")
+            .defaultValue(false)
+            .build()
+    );
+
+    private final Setting<Boolean> pauseOnDrink = sgGeneral.add(new BoolSetting.Builder()
+            .name("pause-on-drink")
+            .description("Pauses while drinking potions.")
+            .defaultValue(false)
+            .build()
+    );
+
+    private final Setting<Boolean> pauseOnMine = sgGeneral.add(new BoolSetting.Builder()
+            .name("pause-on-mine")
+            .description("Pauses while mining blocks.")
+            .defaultValue(false)
+            .build()
+    );
+
     public PistonAura() {
         super(MeteorRejectsAddon.CATEGORY, "piston-aura", "Moves crystals into people using pistons and attacks them.");
     }
+    private PlayerEntity enemy;
+    private PlaceData focusBlock; // this is where the piston should be placed
+
+
+    @Override
+    public void onActivate() {
+        enemy = null;
+    }
+
 
     @EventHandler
     private void onPreTick(TickEvent.Pre event) {
         if (mc == null || mc.player == null || mc.world == null || mc.interactionManager == null) return;
+
+        if (PlayerUtils.shouldPause(pauseOnMine.get(), pauseOnEat.get(), pauseOnDrink.get())) return;
+
+        if (TargetUtils.isBadTarget(target, targetRange.get())) {
+            target = TargetUtils.getPlayerTarget(targetRange.get(), priority.get());
+            if (TargetUtils.isBadTarget(target, targetRange.get())) return;
+        }
+
         hasItems(grabInv.get());
+    }
+
+    @EventHandler
+    private void onRender(Render3DEvent event) {
+
     }
 
     private boolean hasEnoughSpace(BlockPos direction, BlockPos enemyOrigin, boolean checkHavSupport) { // ensure direction has enough space
@@ -99,10 +144,16 @@ public class PistonAura extends Module {
         return true;
     }
 
+    private PlaceData getPowerLoc(PlaceData pistonData) {
+        fromDirection(pistonData.dir());
+        return null;
+    }
+
     private boolean attemptLayer(Direction direction, BlockPos enemyOrigin, int tick) {
         // steps: piston, then crystal, then redstone
         return false;
     }
+
 
     private FindItemResult findButton() {
         return InvUtils.find(itemStack -> itemStack.getItem() == Items.STONE_BUTTON); // low prio todo: add more buttons, but like, non repetitively

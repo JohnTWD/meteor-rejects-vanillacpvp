@@ -111,6 +111,17 @@ public class CevBreaker extends Module {
             .build()
     );
 
+    private final Setting<Integer> attackDelay = sgBreaking.add(new IntSetting.Builder()
+            .name("attack-delay")
+            .description("How many ticks to wait before hitting the crystal")
+            .defaultValue(1)
+            .range(0,20)
+            .sliderRange(0,20)
+            .visible(() -> mode.get() == Mode.Packet)
+            .build()
+    );
+
+
     // Placing
     private final Setting<WorldUtils.SwitchMode> switchMode = sgPlacing.add(new EnumSetting.Builder<WorldUtils.SwitchMode>()
             .name("switch-mode")
@@ -235,6 +246,7 @@ public class CevBreaker extends Module {
         }
     }
 
+    private int bDel = 0;
     @EventHandler
     private void onTick(TickEvent.Pre event) {
         switchDelayLeft--;
@@ -349,6 +361,8 @@ public class CevBreaker extends Module {
         }
 
         if (mode.get() == Mode.Packet && breakDelayLeft >= 0) return;
+        if (bDel >= attackDelay.get()) {bDel++; return;}
+        bDel = 0 ;
         for (EndCrystalEntity crystal : crystals) {
             if (DamageUtils.crystalDamage(closestTarget, crystal.getPos()) >= 6) {
                 float[] breakRotation = PlayerUtils.calculateAngle(RejectEntityUtils.crystalEdgePos(crystal));
@@ -356,7 +370,7 @@ public class CevBreaker extends Module {
                 else mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
                 if (rotate.get())
                     Rotations.rotate(breakRotation[0], breakRotation[1], 30, () -> mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(crystal, false)));
-                else mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(crystal, false));
+                else mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(crystal, mc.player.isSneaking()));
                 break;
             }
         }

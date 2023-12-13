@@ -16,6 +16,7 @@
 - [N]CA switch option using place(), check if it works on CC
 - [N]Fly Chaser
 - [D]BowBomb
+- [D]CevBreaker
 
 
 <div align="center">
