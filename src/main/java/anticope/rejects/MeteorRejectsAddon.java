@@ -131,12 +131,12 @@ public class MeteorRejectsAddon extends MeteorAddon {
 
     @Override
     public String getWebsite() {
-        return "https://github.com/AntiCope/meteor-rejects";
+        return "https://github.com/JohnTWD/meteor-rejects-vanillacpvp";
     }
 
     @Override
     public GithubRepo getRepo() {
-        return new GithubRepo("AntiCope", "meteor-rejects");
+        return new GithubRepo("JohnTWD", "meteor-rejects-vanilla-cpvp");
     }
 
     @Override

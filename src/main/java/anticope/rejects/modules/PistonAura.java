@@ -7,35 +7,28 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.settings.Setting;
-import meteordevelopment.meteorclient.systems.friends.Friends;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.settings.*;
-import meteordevelopment.meteorclient.utils.entity.EntityUtils;
 import meteordevelopment.meteorclient.utils.entity.SortPriority;
 import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.meteorclient.utils.player.*;
 import meteordevelopment.meteorclient.utils.render.color.Color;
+import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.meteorclient.utils.world.CardinalDirection;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
-import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
+
+import java.util.Arrays;
+import java.util.Comparator;
 
 import static meteordevelopment.meteorclient.utils.world.CardinalDirection.fromDirection;
 
 public class PistonAura extends Module {
-    private PlayerEntity target;
 
     private BlockPos headPos;
 
@@ -46,6 +39,15 @@ public class PistonAura extends Module {
     public final Setting<Double> targetRange = sgGeneral.add(new DoubleSetting.Builder()
             .name("target-range")
             .description("The radius in which players get targeted.")
+            .defaultValue(5.0)
+            .min(0.0)
+            .sliderRange(0, 10.0)
+            .build()
+    );
+
+    public final Setting<Double> placeRange = sgGeneral.add(new DoubleSetting.Builder()
+            .name("place-range")
+            .description("The radius blocks should be allowed to place")
             .defaultValue(5.0)
             .min(0.0)
             .sliderRange(0, 10.0)
@@ -125,16 +127,15 @@ public class PistonAura extends Module {
         enemy = null;
     }
 
-
     @EventHandler
     private void onPreTick(TickEvent.Pre event) {
         if (mc == null || mc.player == null || mc.world == null || mc.interactionManager == null) return;
 
         if (PlayerUtils.shouldPause(pauseOnMine.get(), pauseOnEat.get(), pauseOnDrink.get())) return;
 
-        if (TargetUtils.isBadTarget(target, targetRange.get())) {
-            target = TargetUtils.getPlayerTarget(targetRange.get(), priority.get());
-            if (TargetUtils.isBadTarget(target, targetRange.get())) return;
+        if (TargetUtils.isBadTarget(enemy, targetRange.get())) {
+            enemy = TargetUtils.getPlayerTarget(targetRange.get(), priority.get());
+            if (TargetUtils.isBadTarget(enemy, targetRange.get())) return;
         }
 
         hasItems(grabInv.get());
@@ -143,22 +144,50 @@ public class PistonAura extends Module {
     @EventHandler
     private void onRender(Render3DEvent event) {
         if (mc.world == null) return;
+        //if (focusBlock == null) return;
+        HitResult ct = mc.crosshairTarget;
+        if (ct == null) return;
+        if (ct.getType() != HitResult.Type.BLOCK) return;
 
-        HitResult allcrosshair = mc.crosshairTarget; // remove these later, this is jsut for testing
-        if (allcrosshair.getType() == HitResult.Type.BLOCK) {
-            BlockPos center = ((BlockHitResult) allcrosshair).getBlockPos();
-            PlaceData piston = new PlaceData(center, directions.get().toDirection());
-            BlockPos crystalLoc = getCrystalLoc(piston);
-            event.renderer.box(center, new Color(0, 0, 0, 0), Color.ORANGE, ShapeMode.Lines, 0);
-            event.renderer.box(crystalLoc, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
-        }
+        BlockPos center = ((BlockHitResult) ct).getBlockPos();
+        PlaceData piston = getFocusBlock(center, 0);//new PlaceData(center, directions.get().toDirection());
+        BlockPos crystalLoc = getCrystalLoc(piston);
+        BlockPos getPowerPlacement = getPowerPlacement(piston);
+        event.renderer.box(center, new Color(0, 0, 0, 0), Color.ORANGE, ShapeMode.Lines, 0);
+        event.renderer.box(crystalLoc, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
+        event.renderer.box(getPowerPlacement, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
+    }
+    private BlockPos getPowerPlacement(PlaceData pistonData) {
+        Direction facing =  (pistonData.dir());
+        return pistonData.pos().offset(facing.getOpposite());
     }
 
-    private boolean hasEnoughSpace(BlockPos direction, BlockPos enemyOrigin, boolean checkHavSupport) { // ensure direction has enough space
+    private PlaceData getFocusBlock(/*PlayerEntity*/ BlockPos targCtr, int yOffset) {
+        //BlockPos targCtr = target.getBlockPos().up().up(yOffset);
+
+        PlaceData[] directionBlocks = {
+            new PlaceData(new BlockPos(targCtr.north(2)).up(yOffset), Direction.NORTH),
+            new PlaceData(new BlockPos(targCtr.south(2)).up(yOffset), Direction.SOUTH),
+            new PlaceData(new BlockPos(targCtr.east(2)).up(yOffset), Direction.EAST),
+            new PlaceData(new BlockPos(targCtr.west(2)).up(yOffset), Direction.WEST)
+        };
+
+        Arrays.sort(directionBlocks, Comparator.comparingDouble(pD -> pD.pos().getSquaredDistance(mc.player.getPos())));
+
+        for (PlaceData rtn : directionBlocks) {
+            if (hasEnoughSpace(rtn.pos(), rtn.dir()))
+                return rtn;
+        }
+        return null;
+    }
+
+
+    private boolean hasEnoughSpace(BlockPos enemyOrigin, Direction direction) { // ensure direction has enough space
         BlockPos checkMe = enemyOrigin;
-        for (int i = 0; i >= 3; i++) {
-            checkMe = checkMe.add(direction);
-            if (mc.world.getBlockState(checkMe).getBlock() != Blocks.AIR)
+        BlockPos directionVec = (BlockPos) direction.getVector();
+        for (int i = 0; i <= 3; i++) {
+            checkMe = checkMe.add(directionVec);
+            if (BlockUtils.canPlace(checkMe, true))
                 return false;
         }
         return true;
