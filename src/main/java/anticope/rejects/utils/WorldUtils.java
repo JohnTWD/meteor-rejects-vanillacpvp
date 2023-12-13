@@ -4,6 +4,7 @@ import meteordevelopment.meteorclient.mixininterface.IVec3d;
 import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.meteorclient.utils.player.Rotations;
+import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
@@ -143,19 +144,14 @@ public class WorldUtils {
         return ((state.getBlock() == Blocks.OBSIDIAN || state.getBlock() == Blocks.BEDROCK) && upstate.getBlock() == Blocks.AIR);
     }
 
-    public static BlockPos[] getSurroundingPosExceptFace(BlockPos center, Direction excludedFace) {
-        BlockPos[] surroundingBlocks = new BlockPos[6];
-        int i = 0;
+    public static boolean needAirPlace(BlockPos center) {
         for (Direction facing : Direction.values()) {
-            if (facing == excludedFace || facing == Direction.UP) {
-                continue;
-            }
-
             BlockPos offsetPos = center.offset(facing);
-            surroundingBlocks[i++] = offsetPos;
+            if (mc.world.getBlockState(offsetPos).getBlock() != Blocks.AIR) {
+                return false; // no need airplace because there is a support block
+            }
         }
-        surroundingBlocks[5] = center.offset(Direction.UP); // done so that this is the last priority
-        return surroundingBlocks;
+        return true; // need airplace
     }
 
 }

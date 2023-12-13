@@ -190,8 +190,26 @@ public class PistonAura extends Module {
         return true;
     }
 
+    private BlockPos[] getSurroundingPosExceptFace(BlockPos center, Direction excludedFace) {
+        BlockPos[] surroundingBlocks = new BlockPos[6];
+        int i = 0;
+        for (Direction facing : Direction.values()) {
+            if (facing == excludedFace || facing == Direction.UP) {
+                continue;
+            }
+
+            BlockPos offsetPos = center.offset(facing);
+            if(WorldUtils.needAirPlace(offsetPos)) surroundingBlocks[4-i] = offsetPos;  // prioritize blocks with supports
+            else surroundingBlocks[i] = offsetPos;
+
+            i++;
+        }
+        surroundingBlocks[5] = center.offset(Direction.UP); // reserve UP direction as last
+        return surroundingBlocks;
+    }
+
     private BlockPos getPowerPlacement(PlaceData pistonData) {
-        BlockPos[] surroundings = WorldUtils.getSurroundingPosExceptFace(pistonData.pos(), pistonData.dir().getOpposite());
+        BlockPos[] surroundings = getSurroundingPosExceptFace(pistonData.pos(), pistonData.dir().getOpposite());
 
         BlockPos theOne = null;
         for (BlockPos block : surroundings) {
