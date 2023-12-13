@@ -103,7 +103,7 @@ public class PistonAura extends Module {
     );
 
     public PistonAura() {
-        super(MeteorRejectsAddon.CATEGORY, "piston-aura", "funniest module ever created made obsolete by anchors. also i may or may not fix non-redstone blk activation methods");
+        super(MeteorRejectsAddon.CATEGORY, "piston-aura", "module dedicated to akarson(RIP) ~ funniest module ever created made obsolete by anchors. also i may or may not fix non-redstone blk activation methods");
     }
     private PlayerEntity enemy;
     private PlaceData focusBlock; // this is where the piston should be placed
@@ -197,7 +197,6 @@ public class PistonAura extends Module {
     private BlockPos[] getSurroundingPosExceptFace(BlockPos center, Direction excludedFace) {
         BlockPos[] surroundingBlocks = new BlockPos[10]; // this is a really shitty fix but hey, it works
         int i = 0;
-        info(excludedFace.getName()+"excluded");
         surroundingBlocks[9] = center.offset(Direction.UP); // reserve UP direction as last element
         for (Direction facing : Direction.values()) {
             if (facing == excludedFace || facing == Direction.UP) // skip over exclusion and UP
