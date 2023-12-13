@@ -18,8 +18,6 @@ import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
@@ -27,8 +25,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class PistonAura extends Module {
-
-    private BlockPos headPos;
 
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
@@ -107,7 +103,7 @@ public class PistonAura extends Module {
     );
 
     public PistonAura() {
-        super(MeteorRejectsAddon.CATEGORY, "piston-aura", "Moves crystals into people using pistons and attacks them.");
+        super(MeteorRejectsAddon.CATEGORY, "piston-aura", "funniest module ever created made obsolete by anchors. also i may or may not fix non-redstone blk activation methods");
     }
     private PlayerEntity enemy;
     private PlaceData focusBlock; // this is where the piston should be placed
@@ -130,48 +126,36 @@ public class PistonAura extends Module {
         }
 
         hasItems(grabInv.get());
-
         PlaceData tempFocus = null;
-        for (int yOffset = 1; yOffset > 3  ; yOffset++) {
-            tempFocus = getFocusBlock(enemy.getBlockPos(), yOffset);
+        for (int yOffset = 0; yOffset < 3 ; yOffset++) {
+            tempFocus = getFocusBlock(enemy, yOffset);
             if (tempFocus != null) break;
         }
-        if (tempFocus != null) {
-            focusBlock = tempFocus;
-        } else focusBlock = null;
+        focusBlock = tempFocus;
     }
 
     @EventHandler
     private void onRender(Render3DEvent event) {
         if (mc.world == null) return;
         //if (focusBlock == null) return;
-        HitResult ct = mc.crosshairTarget;
-        if (ct == null) return;
-        if (ct.getType() != HitResult.Type.BLOCK) return;
 
-        BlockPos center = ((BlockHitResult) ct).getBlockPos().up();
-        PlaceData piston = getFocusBlock(center, 0);//new PlaceData(center, directions.get().toDirection());
+        PlaceData piston = focusBlock;
         if (piston == null) return;
         BlockPos crystalLoc = getCrystalLoc(piston);
         BlockPos getPowerPlacement = getPowerPlacement(piston);
-        event.renderer.box(center, new Color(0, 0, 0, 0), Color.BLUE, ShapeMode.Lines, 0);
         event.renderer.box(piston.pos(), new Color(0, 0, 0, 0), Color.ORANGE, ShapeMode.Lines, 0);
         event.renderer.box(crystalLoc, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
         event.renderer.box(getPowerPlacement, new Color(0, 0, 0, 0), Color.RED, ShapeMode.Lines, 0);
     }
-    private BlockPos getPowerPlacement(PlaceData pistonData) {
-        Direction facing =  (pistonData.dir());
-        return pistonData.pos().offset(facing);
-    }
 
-    private PlaceData getFocusBlock(/*PlayerEntity*/ BlockPos targCtr, int yOffset) {
-        //BlockPos targCtr = target.getBlockPos().up().up(yOffset);
+    private PlaceData getFocusBlock(PlayerEntity target, int yOffset) {
+        BlockPos targCtr = target.getBlockPos().up(yOffset);
 
         PlaceData[] pistonBlocks = {
-            new PlaceData(new BlockPos(targCtr.north(2)).up(yOffset), Direction.NORTH),
-            new PlaceData(new BlockPos(targCtr.south(2)).up(yOffset), Direction.SOUTH),
-            new PlaceData(new BlockPos(targCtr.east(2)).up(yOffset), Direction.EAST),
-            new PlaceData(new BlockPos(targCtr.west(2)).up(yOffset), Direction.WEST)
+            new PlaceData(new BlockPos(targCtr.north(2)), Direction.NORTH),
+            new PlaceData(new BlockPos(targCtr.south(2)), Direction.SOUTH),
+            new PlaceData(new BlockPos(targCtr.east(2)), Direction.EAST),
+            new PlaceData(new BlockPos(targCtr.west(2)), Direction.WEST)
         };
 
         Arrays.sort(pistonBlocks, Comparator.comparingDouble(pD -> pD.pos().getSquaredDistance(mc.player.getPos())));
@@ -201,6 +185,11 @@ public class PistonAura extends Module {
                 return false;
         }
         return true;
+    }
+
+    private BlockPos getPowerPlacement(PlaceData pistonData) {
+        Direction facing =  (pistonData.dir());
+        return pistonData.pos().offset(facing);
     }
 
     private BlockPos getCrystalLoc(PlaceData pistonData) {
@@ -240,18 +229,12 @@ public class PistonAura extends Module {
             return;
         }
 
-        FindItemResult activator = null;
-        switch (activationType.get()) {
-            case redstoneBlock:
-                activator = InvUtils.find(Items.REDSTONE_BLOCK);
-                break;
-            case torch:
-                activator = InvUtils.find(Items.REDSTONE_TORCH);
-                break;
-            case button:
-                activator = findButton();
-        }
-        if (activator != null && !activator.found() || (checkHotbarOnly && !activator.isHotbar())) {
+        FindItemResult activator = switch (activationType.get()) {
+            case redstoneBlock -> InvUtils.find(Items.REDSTONE_BLOCK);
+            case torch -> InvUtils.find(Items.REDSTONE_TORCH);
+            case button -> findButton();
+        };
+        if (!activator.found() || checkHotbarOnly && !activator.isHotbar()) {
             info("No activator, disabling...");
             toggle();
         }
