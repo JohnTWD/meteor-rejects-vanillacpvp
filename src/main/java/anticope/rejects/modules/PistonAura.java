@@ -4,6 +4,7 @@ import anticope.rejects.MeteorRejectsAddon;
 import anticope.rejects.utils.PlaceData;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
+import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.systems.friends.Friends;
@@ -13,6 +14,8 @@ import meteordevelopment.meteorclient.utils.entity.EntityUtils;
 import meteordevelopment.meteorclient.utils.entity.SortPriority;
 import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.meteorclient.utils.player.*;
+import meteordevelopment.meteorclient.utils.render.color.Color;
+import meteordevelopment.meteorclient.utils.world.CardinalDirection;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
@@ -23,6 +26,7 @@ import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -102,6 +106,13 @@ public class PistonAura extends Module {
             .build()
     );
 
+    private final Setting<CardinalDirection> directions = sgGeneral.add(new EnumSetting.Builder<CardinalDirection>()
+            .name("directionTester")
+            .description("duh")
+            .defaultValue(CardinalDirection.North)
+            .build()
+    ); // temporary, should be removed later
+
     public PistonAura() {
         super(MeteorRejectsAddon.CATEGORY, "piston-aura", "Moves crystals into people using pistons and attacks them.");
     }
@@ -131,7 +142,16 @@ public class PistonAura extends Module {
 
     @EventHandler
     private void onRender(Render3DEvent event) {
+        if (mc.world == null) return;
 
+        HitResult allcrosshair = mc.crosshairTarget; // remove these later, this is jsut for testing
+        if (allcrosshair.getType() == HitResult.Type.BLOCK) {
+            BlockPos center = ((BlockHitResult) allcrosshair).getBlockPos();
+            PlaceData piston = new PlaceData(center, directions.get().toDirection());
+            BlockPos crystalLoc = getCrystalLoc(piston);
+            event.renderer.box(center, new Color(0, 0, 0, 0), Color.ORANGE, ShapeMode.Lines, 0);
+            event.renderer.box(crystalLoc, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
+        }
     }
 
     private boolean hasEnoughSpace(BlockPos direction, BlockPos enemyOrigin, boolean checkHavSupport) { // ensure direction has enough space
@@ -144,9 +164,9 @@ public class PistonAura extends Module {
         return true;
     }
 
-    private PlaceData getPowerLoc(PlaceData pistonData) {
-        fromDirection(pistonData.dir());
-        return null;
+    private BlockPos getCrystalLoc(PlaceData pistonData) {
+        Direction facing =  (pistonData.dir());
+        return pistonData.pos().offset(facing);
     }
 
     private boolean attemptLayer(Direction direction, BlockPos enemyOrigin, int tick) {
