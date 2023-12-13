@@ -127,7 +127,7 @@ public class PistonAura extends Module {
 
         hasItems(grabInv.get());
         PlaceData tempFocus = null;
-        for (int yOffset = 0; yOffset < 3 ; yOffset++) {
+        for (int yOffset = 1; yOffset < 3 ; yOffset++) {
             tempFocus = getFocusBlock(enemy, yOffset);
             if (tempFocus != null) break;
         }
@@ -196,12 +196,6 @@ public class PistonAura extends Module {
         Direction facing =  (pistonData.dir());
         return pistonData.pos().offset(facing.getOpposite());
     }
-
-    private boolean attemptLayer(Direction direction, BlockPos enemyOrigin, int tick) {
-        // steps: piston, then crystal, then redstone
-        return false;
-    }
-
 
     private FindItemResult findButton() {
         return InvUtils.find(itemStack -> itemStack.getItem() == Items.STONE_BUTTON); // low prio todo: add more buttons, but like, non repetitively
