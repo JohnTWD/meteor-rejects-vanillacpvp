@@ -191,41 +191,33 @@ public class PistonAura extends Module {
     }
 
     private BlockPos[] getSurroundingPosExceptFace(BlockPos center, Direction excludedFace) {
-        BlockPos[] surroundingBlocks = new BlockPos[5];
-        String[] debugDir = new String[5];
+        BlockPos[] surroundingBlocks = new BlockPos[10]; // this is a really shitty fix but hey, it works
         int i = 0;
         info(excludedFace.getName()+"excluded");
-        surroundingBlocks[4] = center.offset(Direction.UP); // reserve UP direction as last element
-        debugDir[4] = (Direction.UP.getName() + "UP"); // reserve UP direction as last element
+        surroundingBlocks[9] = center.offset(Direction.UP); // reserve UP direction as last element
         for (Direction facing : Direction.values()) {
             if (facing == excludedFace || facing == Direction.UP) // skip over exclusion and UP
                 continue;
 
             BlockPos offsetPos = center.offset(facing);
-            if(!WorldUtils.needAirPlace(offsetPos)) {
+            if(!WorldUtils.needAirPlace(offsetPos)) { // prioritize blocks with supports
                 surroundingBlocks[i] = offsetPos;
-                debugDir[i] = facing.getName() + "noA";
-            }  // prioritize blocks with supports
-            else {
-                surroundingBlocks[4 - i] = offsetPos;
-                debugDir[4-i] = facing.getName();
-            } // blocks that need airplacing go to the back
+            }
+            else { // blocks that need airplacing go to the back
+                surroundingBlocks[8 - i] = offsetPos;
+            }
             i++;
         }
-        for (String d : debugDir) {
-            if (d == null) info("null");
-            else info(d);
-        }
-
         return surroundingBlocks;
     }
 
     private BlockPos getPowerPlacement(PlaceData pistonData) {
-        info("getting place");
         BlockPos[] surroundings = getSurroundingPosExceptFace(pistonData.pos(), pistonData.dir().getOpposite());
 
         BlockPos theOne = null;
         for (BlockPos block : surroundings) {
+            if (block == null) continue;
+
             if (BlockUtils.canPlace(block,true) && block.isWithinDistance(mc.player.getPos(), placeRange.get())) {
                 theOne = block;
                 break;
