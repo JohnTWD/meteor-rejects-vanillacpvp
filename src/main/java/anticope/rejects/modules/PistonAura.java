@@ -14,7 +14,6 @@ import meteordevelopment.meteorclient.utils.entity.TargetUtils;
 import meteordevelopment.meteorclient.utils.player.*;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
-import meteordevelopment.meteorclient.utils.world.CardinalDirection;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
@@ -25,8 +24,6 @@ import net.minecraft.util.math.Direction;
 
 import java.util.Arrays;
 import java.util.Comparator;
-
-import static meteordevelopment.meteorclient.utils.world.CardinalDirection.fromDirection;
 
 public class PistonAura extends Module {
 
@@ -108,13 +105,6 @@ public class PistonAura extends Module {
             .build()
     );
 
-    private final Setting<CardinalDirection> directions = sgGeneral.add(new EnumSetting.Builder<CardinalDirection>()
-            .name("directionTester")
-            .description("duh")
-            .defaultValue(CardinalDirection.North)
-            .build()
-    ); // temporary, should be removed later
-
     public PistonAura() {
         super(MeteorRejectsAddon.CATEGORY, "piston-aura", "Moves crystals into people using pistons and attacks them.");
     }
@@ -149,17 +139,22 @@ public class PistonAura extends Module {
         if (ct == null) return;
         if (ct.getType() != HitResult.Type.BLOCK) return;
 
-        BlockPos center = ((BlockHitResult) ct).getBlockPos();
+        BlockPos center = ((BlockHitResult) ct).getBlockPos().up();
         PlaceData piston = getFocusBlock(center, 0);//new PlaceData(center, directions.get().toDirection());
+        if (piston == null) {
+            info("No valid placements");
+            return;
+        }
         BlockPos crystalLoc = getCrystalLoc(piston);
         BlockPos getPowerPlacement = getPowerPlacement(piston);
-        event.renderer.box(center, new Color(0, 0, 0, 0), Color.ORANGE, ShapeMode.Lines, 0);
+        event.renderer.box(center, new Color(0, 0, 0, 0), Color.BLUE, ShapeMode.Lines, 0);
+        event.renderer.box(piston.pos(), new Color(0, 0, 0, 0), Color.ORANGE, ShapeMode.Lines, 0);
         event.renderer.box(crystalLoc, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
-        event.renderer.box(getPowerPlacement, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
+        event.renderer.box(getPowerPlacement, new Color(0, 0, 0, 0), Color.RED, ShapeMode.Lines, 0);
     }
     private BlockPos getPowerPlacement(PlaceData pistonData) {
         Direction facing =  (pistonData.dir());
-        return pistonData.pos().offset(facing.getOpposite());
+        return pistonData.pos().offset(facing);
     }
 
     private PlaceData getFocusBlock(/*PlayerEntity*/ BlockPos targCtr, int yOffset) {
@@ -175,8 +170,9 @@ public class PistonAura extends Module {
         Arrays.sort(directionBlocks, Comparator.comparingDouble(pD -> pD.pos().getSquaredDistance(mc.player.getPos())));
 
         for (PlaceData rtn : directionBlocks) {
-            if (hasEnoughSpace(rtn.pos(), rtn.dir()))
-                return rtn;
+            if (!hasEnoughSpace(rtn.pos(), rtn.dir()))
+                continue;
+            return rtn;
         }
         return null;
     }
@@ -184,10 +180,12 @@ public class PistonAura extends Module {
 
     private boolean hasEnoughSpace(BlockPos enemyOrigin, Direction direction) { // ensure direction has enough space
         BlockPos checkMe = enemyOrigin;
-        BlockPos directionVec = (BlockPos) direction.getVector();
-        for (int i = 0; i <= 3; i++) {
+        BlockPos directionVec = new BlockPos(direction.getVector());
+        for (int i = -1; i <= 1; i++) {
             checkMe = checkMe.add(directionVec);
-            if (BlockUtils.canPlace(checkMe, true))
+            if (!BlockUtils.canPlace(checkMe, true))
+                return false;
+            if (!PlayerUtils.isWithin(checkMe, placeRange.get()))
                 return false;
         }
         return true;
@@ -195,7 +193,7 @@ public class PistonAura extends Module {
 
     private BlockPos getCrystalLoc(PlaceData pistonData) {
         Direction facing =  (pistonData.dir());
-        return pistonData.pos().offset(facing);
+        return pistonData.pos().offset(facing.getOpposite());
     }
 
     private boolean attemptLayer(Direction direction, BlockPos enemyOrigin, int tick) {
