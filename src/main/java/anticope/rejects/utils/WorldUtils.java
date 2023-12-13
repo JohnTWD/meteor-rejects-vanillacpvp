@@ -143,4 +143,20 @@ public class WorldUtils {
         return ((state.getBlock() == Blocks.OBSIDIAN || state.getBlock() == Blocks.BEDROCK) && upstate.getBlock() == Blocks.AIR);
     }
 
+    public static BlockPos[] getSurroundingPosExceptFace(BlockPos center, Direction excludedFace) {
+        BlockPos[] surroundingBlocks = new BlockPos[6];
+        int i = 0;
+
+        for (Direction facing : Direction.values()) {
+            if (facing == excludedFace) {
+                continue;
+            }
+
+            BlockPos offsetPos = center.offset(facing);
+            surroundingBlocks[i++] = offsetPos;
+        }
+
+        return surroundingBlocks;
+    }
+
 }

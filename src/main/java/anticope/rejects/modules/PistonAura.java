@@ -173,8 +173,9 @@ public class PistonAura extends Module {
         BlockPos[] checkMe = {
             pistonLoc.pos(),
             getCrystalLoc(pistonLoc),
-            getPowerPlacement(pistonLoc),
         };
+
+        if (getPowerPlacement(pistonLoc) == null) return false;
 
         if (!WorldUtils.canCrystalPlace(checkMe[1].down())) return false;
 
@@ -188,8 +189,17 @@ public class PistonAura extends Module {
     }
 
     private BlockPos getPowerPlacement(PlaceData pistonData) {
-        Direction facing =  (pistonData.dir());
-        return pistonData.pos().offset(facing);
+        BlockPos[] surroundings = WorldUtils.getSurroundingPosExceptFace(pistonData.pos(), pistonData.dir().getOpposite());
+
+        BlockPos theOne = null;
+        for (BlockPos block : surroundings) {
+            if (BlockUtils.canPlace(block,true) && block.isWithinDistance(mc.player.getPos(), placeRange.get())) {
+                theOne = block;
+                break;
+            }
+        }
+
+        return theOne;
     }
 
     private BlockPos getCrystalLoc(PlaceData pistonData) {
