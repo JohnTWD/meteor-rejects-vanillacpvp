@@ -146,16 +146,15 @@ public class WorldUtils {
     public static BlockPos[] getSurroundingPosExceptFace(BlockPos center, Direction excludedFace) {
         BlockPos[] surroundingBlocks = new BlockPos[6];
         int i = 0;
-
         for (Direction facing : Direction.values()) {
-            if (facing == excludedFace) {
+            if (facing == excludedFace || facing == Direction.UP) {
                 continue;
             }
 
             BlockPos offsetPos = center.offset(facing);
             surroundingBlocks[i++] = offsetPos;
         }
-
+        surroundingBlocks[5] = center.offset(Direction.UP); // done so that this is the last priority
         return surroundingBlocks;
     }
 

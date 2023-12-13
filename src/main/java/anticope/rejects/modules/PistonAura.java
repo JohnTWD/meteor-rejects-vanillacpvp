@@ -143,6 +143,8 @@ public class PistonAura extends Module {
         if (piston == null) return;
         BlockPos crystalLoc = getCrystalLoc(piston);
         BlockPos getPowerPlacement = getPowerPlacement(piston);
+        if (getPowerPlacement == null) return;
+
         event.renderer.box(piston.pos(), new Color(0, 0, 0, 0), Color.ORANGE, ShapeMode.Lines, 0);
         event.renderer.box(crystalLoc, new Color(0, 0, 0, 0), Color.MAGENTA, ShapeMode.Lines, 0);
         event.renderer.box(getPowerPlacement, new Color(0, 0, 0, 0), Color.RED, ShapeMode.Lines, 0);
