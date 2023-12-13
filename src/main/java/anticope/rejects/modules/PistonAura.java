@@ -192,10 +192,10 @@ public class PistonAura extends Module {
 
     private BlockPos[] getSurroundingPosExceptFace(BlockPos center, Direction excludedFace) {
         BlockPos[] surroundingBlocks = new BlockPos[5];
-        Direction[] debugDir = new Direction[5];
+        String[] debugDir = new String[5];
         int i = 0;
         surroundingBlocks[4] = center.offset(Direction.UP); // reserve UP direction as last element
-        debugDir[4] = (Direction.UP); // reserve UP direction as last element
+        debugDir[4] = (Direction.UP.getName() + "UP"); // reserve UP direction as last element
         for (Direction facing : Direction.values()) {
             if (facing == excludedFace || facing == Direction.UP) // skip over exclusion and UP
                 continue;
@@ -203,22 +203,24 @@ public class PistonAura extends Module {
             BlockPos offsetPos = center.offset(facing);
             if(!WorldUtils.needAirPlace(offsetPos)) {
                 surroundingBlocks[i] = offsetPos;
-                debugDir[i] = facing;
+                debugDir[i] = facing.getName() + "noA";
             }  // prioritize blocks with supports
             else {
                 surroundingBlocks[4 - i] = offsetPos;
-                debugDir[4-i] = facing;
+                debugDir[4-i] = facing.getName();
             } // blocks that need airplacing go to the back
             i++;
         }
-        for (Direction d : debugDir) {
-            if (d == null) info("null"); else info(d.getName());
+        for (String d : debugDir) {
+            if (d == null) info("null");
+            else info(d);
         }
 
         return surroundingBlocks;
     }
 
     private BlockPos getPowerPlacement(PlaceData pistonData) {
+        info("getting place");
         BlockPos[] surroundings = getSurroundingPosExceptFace(pistonData.pos(), pistonData.dir().getOpposite());
 
         BlockPos theOne = null;
