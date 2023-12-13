@@ -192,7 +192,7 @@ public class PistonAura extends Module {
 
     private BlockPos[] getSurroundingPosExceptFace(BlockPos center, Direction excludedFace) {
         BlockPos[] surroundingBlocks = new BlockPos[5];
-        Direction[] debugDir = new Direction[6];
+        Direction[] debugDir = new Direction[5];
         int i = 0;
         surroundingBlocks[4] = center.offset(Direction.UP); // reserve UP direction as last element
         debugDir[4] = (Direction.UP); // reserve UP direction as last element
@@ -212,7 +212,7 @@ public class PistonAura extends Module {
             i++;
         }
         for (Direction d : debugDir) {
-            info(d.getName());
+            if (d == null) info("null"); else info(d.getName());
         }
 
         return surroundingBlocks;
