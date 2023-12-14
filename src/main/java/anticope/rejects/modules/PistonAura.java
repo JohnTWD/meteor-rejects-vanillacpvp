@@ -16,7 +16,6 @@ import meteordevelopment.meteorclient.utils.player.*;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
@@ -230,7 +229,7 @@ public class PistonAura extends Module {
     }
 
     private boolean canPlacePower(BlockPos blockPos) {
-        return (!BlockUtils.canPlace(blockPos, true) && !(mc.world.getBlockState(blockPos).getBlock() == Blocks.REDSTONE_BLOCK)) // low prio TODO: add the other power methods
+        return !(!BlockUtils.canPlace(blockPos, true) && !(mc.world.getBlockState(blockPos).getBlock() == Blocks.REDSTONE_BLOCK)); // low prio TODO: add the other power methods
     }
 
     private BlockPos getPowerPlacement(PlaceData pistonData) {
