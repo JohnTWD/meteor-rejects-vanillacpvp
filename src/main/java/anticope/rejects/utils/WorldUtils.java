@@ -148,7 +148,7 @@ public class WorldUtils {
         BlockState upstate = mc.world.getBlockState(loc.up());
         BlockState state = mc.world.getBlockState(loc);
 
-        return ((state.getBlock() == Blocks.OBSIDIAN || state.getBlock() == Blocks.BEDROCK) && (upstate.getBlock() == Blocks.AIR || upstate.getBlock() == Blocks.PISTON_HEAD));
+        return ((state.getBlock() == Blocks.OBSIDIAN || state.getBlock() == Blocks.BEDROCK) && (upstate.getBlock() == Blocks.AIR || upstate.getBlock() == Blocks.PISTON_HEAD)); // problem: this doesnt work, piston heads are still not detected properly
     }
 
     public static boolean needAirPlace(BlockPos center) {

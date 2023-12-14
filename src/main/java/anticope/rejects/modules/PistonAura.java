@@ -199,7 +199,7 @@ public class PistonAura extends Module {
         if (!BlockUtils.canPlace(rtn[0]) && !(mc.world.getBlockState(rtn[0]).getBlock() == Blocks.PISTON || mc.world.getBlockState(rtn[0]).getBlock() == Blocks.STICKY_PISTON))
             return false; // cannot place and not a piston at piston loc
 
-        if (!BlockUtils.canPlace(rtn[1]) && !(canPlacePower(rtn[1]))) // low prio TODO: add the other power methods
+        if (!(canPlacePower(rtn[1]))) // low prio TODO: add the other power methods
             return false;
 
         for (BlockPos b : rtn) {
