@@ -176,7 +176,7 @@ public class PistonAura extends Module {
         Arrays.sort(pistonBlocks, Comparator.comparingDouble(pD -> pD.pos().getSquaredDistance(mc.player.getPos())));
 
         for (PlaceData rtn : pistonBlocks) {
-            if (!hasEnoughSpace(rtn))
+            if (!isGoodDirection(rtn))
                 continue;
             return rtn;
         }
@@ -184,22 +184,21 @@ public class PistonAura extends Module {
     }
 
 
-    private boolean hasEnoughSpace(PlaceData pistonLoc) { // check direction has enough space and is within range
-        BlockPos[] checkMe = {
-            pistonLoc.pos(),
-            getCrystalLoc(pistonLoc),
+    private boolean isGoodDirection(PlaceData pistonLoc) { // check direction has enough space and is within range
+        BlockPos[] rtn = {
+                pistonLoc.pos(),             // piston  rtn[0]
+                getCrystalLoc(pistonLoc),    // crystal rtn[1]
+                getPowerPlacement(pistonLoc) // power   rtn[2]
         };
 
-        if (getPowerPlacement(pistonLoc) == null) return false;
+        if (rtn[2] == null) return false; // power nil rtn 0
+        if (!airplaceCan.get() && WorldUtils.needAirPlace(rtn[2])) return false; // !airplace & airplaceneed->for:power
+        if (!WorldUtils.canCrystalPlace(rtn[1].down())) return false; // crystal placeable
 
-        if (!WorldUtils.canCrystalPlace(checkMe[1].down())) return false;
-
-        for (BlockPos rtn: checkMe) {
-            if (!airplaceCan.get() && WorldUtils.needAirPlace(rtn)) // cannot airplace and block needs airplace
+        for (BlockPos b : rtn) {
+            if (!BlockUtils.canPlace(b,true))
                 return false;
-            if (!BlockUtils.canPlace(rtn,true))
-                return false;
-            if (!rtn.isWithinDistance(mc.player.getPos(), placeRange.get()))
+            if (!b.isWithinDistance(mc.player.getPos(), placeRange.get()))
                 return false;
         }
         return true;
