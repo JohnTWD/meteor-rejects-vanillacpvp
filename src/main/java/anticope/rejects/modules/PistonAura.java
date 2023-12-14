@@ -55,10 +55,19 @@ public class PistonAura extends Module {
             .build()
     );
 
+
+    private final Setting<Boolean> airplaceCan = sgGeneral.add(new BoolSetting.Builder()
+            .name("allowAirplace")
+            .description("Will not skip over layers if there are no supports")
+            .defaultValue(false)
+            .build()
+    );
+
     private final Setting<Boolean> trap = sgGeneral.add(new BoolSetting.Builder()
             .name("trap")
             .description("Traps the enemy player. (Will not work if server disallows air place!)")
-            .defaultValue(true)
+            .defaultValue(false)
+            .visible(airplaceCan::get)
             .build()
     );
 
@@ -186,6 +195,8 @@ public class PistonAura extends Module {
         if (!WorldUtils.canCrystalPlace(checkMe[1].down())) return false;
 
         for (BlockPos rtn: checkMe) {
+            if (!airplaceCan.get() && WorldUtils.needAirPlace(rtn)) // cannot airplace and block needs airplace
+                return false;
             if (!BlockUtils.canPlace(rtn,true))
                 return false;
             if (!rtn.isWithinDistance(mc.player.getPos(), placeRange.get()))
@@ -205,8 +216,7 @@ public class PistonAura extends Module {
             BlockPos offsetPos = center.offset(facing);
             if(!WorldUtils.needAirPlace(offsetPos)) { // prioritize blocks with supports
                 surroundingBlocks[i] = offsetPos;
-            }
-            else { // blocks that need airplacing go to the back
+            } else { // blocks that need airplacing go to the back
                 surroundingBlocks[8 - i] = offsetPos;
             }
             i++;
