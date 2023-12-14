@@ -16,6 +16,7 @@ import meteordevelopment.meteorclient.utils.player.*;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventHandler;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPos;
@@ -193,11 +194,15 @@ public class PistonAura extends Module {
 
         if (rtn[2] == null) return false; // power nil rtn 0
         if (!airplaceCan.get() && WorldUtils.needAirPlace(rtn[2])) return false; // !airplace & airplaceneed->for:power
-        if (!WorldUtils.canCrystalPlace(rtn[1].down())) return false; // crystal placeable
+        if (!WorldUtils.canCrystalPlaceIgnorePiston(rtn[1].down())) return false; // crystal placeable
+
+        if (!BlockUtils.canPlace(rtn[0]) && !(mc.world.getBlockState(rtn[0]).getBlock() == Blocks.PISTON || mc.world.getBlockState(rtn[0]).getBlock() == Blocks.STICKY_PISTON))
+            return false; // cannot place and not a piston at piston loc
+
+        if (!BlockUtils.canPlace(rtn[1]) && !(mc.world.getBlockState(rtn[2]).getBlock() == Blocks.REDSTONE_BLOCK)) // low prio TODO: add the other power methods
+            return false;
 
         for (BlockPos b : rtn) {
-            if (!BlockUtils.canPlace(b,true))
-                return false;
             if (!b.isWithinDistance(mc.player.getPos(), placeRange.get()))
                 return false;
         }

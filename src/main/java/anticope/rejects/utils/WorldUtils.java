@@ -144,6 +144,13 @@ public class WorldUtils {
         return ((state.getBlock() == Blocks.OBSIDIAN || state.getBlock() == Blocks.BEDROCK) && upstate.getBlock() == Blocks.AIR);
     }
 
+    public static boolean canCrystalPlaceIgnorePiston(BlockPos loc) { // very specific shit only in use for one module lol
+        BlockState upstate = mc.world.getBlockState(loc.up());
+        BlockState state = mc.world.getBlockState(loc);
+
+        return ((state.getBlock() == Blocks.OBSIDIAN || state.getBlock() == Blocks.BEDROCK) && (upstate.getBlock() == Blocks.AIR || upstate.getBlock() == Blocks.PISTON_HEAD));
+    }
+
     public static boolean needAirPlace(BlockPos center) {
         for (Direction facing : Direction.values()) {
             BlockPos offsetPos = center.offset(facing);
