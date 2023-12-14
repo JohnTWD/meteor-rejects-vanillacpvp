@@ -1,6 +1,7 @@
 package anticope.rejects.mixin.meteor.modules;
 
 
+import meteordevelopment.meteorclient.events.entity.player.StartBreakingBlockEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.BoolSetting;
 import meteordevelopment.meteorclient.settings.Setting;
@@ -10,6 +11,8 @@ import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.world.PacketMine;
 import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
+import net.minecraft.block.BlockState;
+import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -31,6 +34,7 @@ public abstract class PacketMineMixin extends Module {
 
     @Shadow private boolean swapped;
     @Unique private Setting<Boolean> shouldForceSwitch;
+    @Unique private Setting<Boolean> onlyGoodTools;
     @Mutable @Shadow @Final private Setting<Boolean> notOnUse;
 
     public PacketMineMixin(Category category, String name, String description, Setting<Boolean> notOnUse) {
@@ -47,6 +51,25 @@ public abstract class PacketMineMixin extends Module {
                 .visible(autoSwitch::get)
                 .build()
         );
+
+        onlyGoodTools = sgGeneral.add(new BoolSetting.Builder()
+                .name("onlyTools")
+                .description("Only activates if the tool you are holding is good for mining said block")
+                .defaultValue(false)
+                .visible(autoSwitch::get)
+                .build()
+        );
+    }
+
+    @Inject(method = "onStartBreakingBlock", at = @At(value = "HEAD"), locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true)
+    private void modifyOnStartBreakingBlock(StartBreakingBlockEvent event, CallbackInfo ci) {
+        if (onlyGoodTools.get()) {
+            ItemStack mainHandStack = mc.player.getMainHandStack();
+            ItemStack o0fhandStack = mc.player.getOffHandStack();
+            BlockState attackedBl0ck = mc.world.getBlockState(event.blockPos);
+            if (!mainHandStack.isSuitableFor(attackedBl0ck) && !o0fhandStack.isSuitableFor(attackedBl0ck))
+                ci.cancel();
+        }
     }
 
     @Inject(method = "onTick", at = @At(value = "HEAD"), locals = LocalCapture.CAPTURE_FAILSOFT, cancellable = true)
