@@ -16,6 +16,7 @@ import meteordevelopment.meteorclient.utils.player.*;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventHandler;
+import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
@@ -199,7 +200,7 @@ public class PistonAura extends Module {
         if (!BlockUtils.canPlace(rtn[0]) && !(mc.world.getBlockState(rtn[0]).getBlock() == Blocks.PISTON || mc.world.getBlockState(rtn[0]).getBlock() == Blocks.STICKY_PISTON))
             return false; // cannot place and not a piston at piston loc
 
-        if (!BlockUtils.canPlace(rtn[1]) && !(mc.world.getBlockState(rtn[2]).getBlock() == Blocks.REDSTONE_BLOCK)) // low prio TODO: add the other power methods
+        if (!BlockUtils.canPlace(rtn[1]) && !(canPlacePower(rtn[1]))) // low prio TODO: add the other power methods
             return false;
 
         for (BlockPos b : rtn) {
@@ -228,6 +229,10 @@ public class PistonAura extends Module {
         return surroundingBlocks;
     }
 
+    private boolean canPlacePower(BlockPos blockPos) {
+        return (!BlockUtils.canPlace(blockPos, true) && !(mc.world.getBlockState(blockPos).getBlock() == Blocks.REDSTONE_BLOCK)) // low prio TODO: add the other power methods
+    }
+
     private BlockPos getPowerPlacement(PlaceData pistonData) {
         BlockPos[] surroundings = getSurroundingPosExceptFace(pistonData.pos(), pistonData.dir().getOpposite());
 
@@ -235,7 +240,7 @@ public class PistonAura extends Module {
         for (BlockPos block : surroundings) {
             if (block == null) continue;
 
-            if (BlockUtils.canPlace(block,true) && block.isWithinDistance(mc.player.getPos(), placeRange.get())) {
+            if (canPlacePower(block) && block.isWithinDistance(mc.player.getPos(), placeRange.get())) {
                 theOne = block;
                 break;
             }
