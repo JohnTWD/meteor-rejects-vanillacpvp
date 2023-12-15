@@ -17,6 +17,8 @@ import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.world.BlockUtils;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.PistonBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPos;
@@ -167,6 +169,8 @@ public class PistonAura extends Module {
     private PlaceData getFocusBlock(PlayerEntity target, int yOffset) {
         BlockPos targCtr = target.getBlockPos().up(yOffset);
 
+        if (!mc.world.getBlockState(targCtr).isReplaceable()) return null; // cannot push crystals at y offset
+
         PlaceData[] pistonBlocks = {
             new PlaceData(new BlockPos(targCtr.north(2)), Direction.NORTH),
             new PlaceData(new BlockPos(targCtr.south(2)), Direction.SOUTH),
@@ -184,6 +188,13 @@ public class PistonAura extends Module {
         return null;
     }
 
+    public boolean isMovingPiston(BlockPos pos) {
+        // Get the TileEntity at the specified position
+        BlockEntity blockEntity = mc.world.getBlockEntity(pos);
+
+        // Check if the TileEntity is a PistonMovingBlockEntity
+        return blockEntity instanceof PistonBlockEntity;
+    }
 
     private boolean isGoodDirection(PlaceData pistonLoc) { // check direction has enough space and is within range
         BlockPos[] rtn = {
@@ -193,13 +204,13 @@ public class PistonAura extends Module {
         };
 
         if (rtn[2] == null) return false; // power nil rtn 0
-        if (!airplaceCan.get() && WorldUtils.needAirPlace(rtn[2])) return false; // !airplace & airplaceneed->for:power
+        if (!airplaceCan.get() && (WorldUtils.needAirPlace(rtn[0]))) return false; // power does not need this check because it can just attach itself to the piston
         if (!WorldUtils.canCrystalPlaceIgnorePiston(rtn[1].down())) return false; // crystal placeable
 
-        if (!BlockUtils.canPlace(rtn[0]) && !(mc.world.getBlockState(rtn[0]).getBlock() == Blocks.PISTON || mc.world.getBlockState(rtn[0]).getBlock() == Blocks.STICKY_PISTON))
+        if (!BlockUtils.canPlace(rtn[0]) && !(mc.world.getBlockState(rtn[0]).getBlock() == Blocks.PISTON || mc.world.getBlockState(rtn[0]).getBlock() == Blocks.STICKY_PISTON || isMovingPiston(rtn[0])))
             return false; // cannot place and not a piston at piston loc
 
-        if (!(canPlacePower(rtn[1]))) // low prio TODO: add the other power methods
+        if (!(canPlacePower(rtn[2]))) // low prio TODO: add the other power methods
             return false;
 
         for (BlockPos b : rtn) {
@@ -212,10 +223,9 @@ public class PistonAura extends Module {
     private BlockPos[] getSurroundingPosExceptFace(BlockPos center, Direction excludedFace) {
         BlockPos[] surroundingBlocks = new BlockPos[10]; // this is a really shitty fix but hey, it works
         int i = 0;
-        surroundingBlocks[9] = center.offset(Direction.UP); // reserve UP direction as last element
         for (Direction facing : Direction.values()) {
-            if (facing == excludedFace || facing == Direction.UP) // skip over exclusion and UP
-                continue;
+            if (facing == excludedFace || facing == Direction.UP || facing == Direction.DOWN) // skip over exclusion and vertical
+                continue; // vertical directions will result in a stuck piston -> TODO: ignore this if using buttons for power
 
             BlockPos offsetPos = center.offset(facing);
             if(!WorldUtils.needAirPlace(offsetPos)) { // prioritize blocks with supports

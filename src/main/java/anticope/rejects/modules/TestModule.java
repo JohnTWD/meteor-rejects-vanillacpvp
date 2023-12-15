@@ -28,6 +28,7 @@ public class TestModule extends Module {
     public enum Testwhat {
         testseecanplace,
         placeDirections,
+        whatamilookingat,
         nothin
     }
     private final Setting<TestModule.Testwhat> what2test = sgGeneral.add(new EnumSetting.Builder<TestModule.Testwhat>()
@@ -84,6 +85,12 @@ public class TestModule extends Module {
                             BlockUtils.place(bct, Hand.MAIN_HAND, mc.player.getInventory().selectedSlot, false, 0, true, true, false);
                         });
                     }
+                }
+                break;
+            case whatamilookingat:
+                if (ct.getType() == HitResult.Type.BLOCK) {
+                    BlockPos bct = ((BlockHitResult) ct).getBlockPos();
+                    info(mc.world.getBlockState(bct).getBlock().getName());
                 }
                 break;
             case nothin:
