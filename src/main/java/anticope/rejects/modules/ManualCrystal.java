@@ -16,8 +16,6 @@ import meteordevelopment.meteorclient.utils.player.Rotations;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.EndCrystalEntity;
@@ -35,6 +33,7 @@ import net.minecraft.util.math.MathHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ManualCrystal extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -88,6 +87,15 @@ public class ManualCrystal extends Module {
             .defaultValue(false)
             .build()
     );
+    private final Setting<Integer> delayFuzzing = sgGeneral.add(new IntSetting.Builder()
+            .name("delayFuzzing")
+            .description("+/- a random offset to your delays")
+            .defaultValue(1)
+            .range(0,20)
+            .sliderRange(0,20)
+            .build()
+    );
+
     private final Setting<Integer> placeDelay = sgGeneral.add(new IntSetting.Builder()
             .name("placeDelay")
             .description("how long in ticks to wait to place a crystal")
@@ -175,8 +183,9 @@ public class ManualCrystal extends Module {
                 if (allcrosshair.getType() == HitResult.Type.MISS)
                     return;
                 crystalListFilter();
+                int randomFuzz = ThreadLocalRandom.current().nextInt(-delayFuzzing.get(), delayFuzzing.get());
 
-                if (pDel < 0) {
+                if (pDel + randomFuzz < 0) {
                     if (allcrosshair.getType() == HitResult.Type.BLOCK) {
                         BlockHitResult asshair = (BlockHitResult) allcrosshair;
                         BlockPos ptrPos = asshair.getBlockPos();
@@ -202,7 +211,7 @@ public class ManualCrystal extends Module {
                     pDel = placeDelay.get();
                     return;
                 }
-                if (bDel <= 0) {
+                if (bDel + randomFuzz <= 0) {
                     if (allcrosshair.getType() == HitResult.Type.ENTITY) { // looking at crystal, KILL IT!!!
                         EntityHitResult enthr = (EntityHitResult) allcrosshair;
                         if (isGoodCrystal(enthr.getEntity(), false)) attack(enthr.getEntity());
