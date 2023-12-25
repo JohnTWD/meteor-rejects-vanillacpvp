@@ -5,6 +5,7 @@ import static meteordevelopment.meteorclient.MeteorClient.mc;
 import net.minecraft.block.BlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.entity.effect.StatusEffectUtil;
 import net.minecraft.entity.effect.StatusEffects;
@@ -88,6 +89,20 @@ public class RejectEntityUtils {
         } else {
             return (int) Math.ceil(1 / (f / t / 30));
         }
+    }
+
+
+    public static boolean blockedByShield(Entity entity, Entity player) {
+        return blockedByShield(entity.getPos(), player);
+    }
+
+    public static boolean blockedByShield(Vec3d vec3d, Entity player) {
+        if (vec3d != null) {
+            Vec3d vec3d2 = vec3d.relativize(player.getPos()).normalize();
+            vec3d2 = new Vec3d(vec3d2.x, 0.0, vec3d2.z);
+            return vec3d2.dotProduct(player.getRotationVec(1.0F)) < 0.0;
+        }
+        return false;
     }
 
 }

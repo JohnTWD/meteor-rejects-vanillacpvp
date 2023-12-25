@@ -18,6 +18,8 @@
 - [N]Fly Chaser
 - [D]BowBomb
 - [D]CevBreaker
+- [D]AutoShield
+- [O]Aimbot but working lol
 
 
 <div align="center">
