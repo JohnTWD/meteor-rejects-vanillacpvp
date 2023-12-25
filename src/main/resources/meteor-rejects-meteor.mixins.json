@@ -23,6 +23,7 @@
     "modules.SurroundMixin",
     "modules.PacketMineMixin",
     "modules.CrystalAuraMixin",
-    "modules.AutoCityMixin"
+    "modules.AutoCityMixin",
+    "modules.OffhandMixin"
   ]
 }
