@@ -19,6 +19,7 @@ import meteordevelopment.orbit.EventPriority;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.EndCrystalEntity;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -113,6 +114,22 @@ public class ManualCrystal extends Module {
             .build()
     );
 
+    private final Setting<Boolean> stopOnEat = sgGeneral.add(new BoolSetting.Builder()
+            .name("stopOnEat")
+            .description("Exactly what it saYs")
+            .defaultValue(true)
+            .build()
+    );
+
+    private final Setting<Boolean> stopBlockPlace = sgGeneral.add(new BoolSetting.Builder()
+            .name("stopBlockPlace")
+            .description("prevents blocks from placing if you are offhanding")
+            .defaultValue(false)
+            .build()
+    );
+
+
+
     private int origSlot;
     private int pDel = placeDelay.get();
     private int bDel = breakDel.get();
@@ -126,13 +143,15 @@ public class ManualCrystal extends Module {
     public boolean shouldStopItemUse() {
         if (!this.isActive()) return false;
         if (mc.player == null) return false;
-        ItemStack mainHand = mc.player.getMainHandStack();
-        if (mainHand == null) return false;
-        if (mainHand.getItem() != Items.END_CRYSTAL) return false;
+        ItemStack h1 = mc.player.getMainHandStack();
+        if (!handsHasCrystal()) return false;
         if (!mc.options.useKey.isPressed()) return false;
         if (mc.crosshairTarget == null) return false;
         HitResult allcrosshair = mc.crosshairTarget;
         if (allcrosshair.getType() == HitResult.Type.MISS) return false;
+        if (doNaturalPlace.get()) return false;
+        if (stopBlockPlace.get() && h1.getItem() instanceof BlockItem) return false;
+
         mc.player.stopUsingItem();
         return true;
     }
@@ -179,6 +198,9 @@ public class ManualCrystal extends Module {
         }
 
         if (mc.options.useKey.isPressed()) {
+            if (stopOnEat.get() && mc .player.isUsingItem()) return;
+            if (mc.interactionManager.isBreakingBlock()) return;
+
             if (handsHasCrystal()) {
                 if (allcrosshair.getType() == HitResult.Type.MISS)
                     return;
@@ -345,7 +367,5 @@ public class ManualCrystal extends Module {
         }
         attack(targetCrystal);
     }
-
-    
 
 }

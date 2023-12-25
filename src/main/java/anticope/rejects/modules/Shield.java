@@ -81,14 +81,13 @@ public class Shield extends Module {
             }
         }
     }
-
     private boolean entityCheck(Entity entity) {
         if (entity.equals(mc.player) || entity.equals(mc.cameraEntity)) return false;
         if ((entity instanceof LivingEntity && ((LivingEntity) entity).isDead()) || !entity.isAlive()) return false;
         if (PlayerUtils.distanceTo(entity) > range.get()) return false;
         if (!entities.get().contains(entity.getType())) return false;
 
-        if (entity instanceof ArrowEntity && entity.isOnGround()) return false; // so we only detect arrows that are flying
+        if (entity instanceof ArrowEntity && entity.getVelocity().length() != 0) return false; // so we only detect arrows that are flying
         if (entity instanceof EndCrystalEntity && !PlayerUtils.canSeeEntity(entity)) return false;
         if (entity instanceof PlayerEntity pe) {
             Item m = pe.getMainHandStack().getItem();

@@ -5,7 +5,6 @@ import anticope.rejects.MeteorRejectsAddon;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.friends.Friends;
-import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.entity.EntityUtils;
 import meteordevelopment.meteorclient.utils.entity.SortPriority;
@@ -67,14 +66,6 @@ public class BetterAimbot extends Module {
             .build()
     );
 
-
-    private final Setting<Boolean> pauseOnCombat = sgGeneral.add(new BoolSetting.Builder()
-            .name("pause-on-combat")
-            .description("Freezes Baritone temporarily until you released the bow.")
-            .defaultValue(false)
-            .build()
-    );
-
     private final Setting<Boolean> rotate = sgGeneral.add(new BoolSetting.Builder()
             .name("rotate")
             .description("Rotate player's view angle.")
@@ -103,7 +94,7 @@ public class BetterAimbot extends Module {
     private Entity target;
 
     public BetterAimbot() {
-        super(MeteorRejectsAddon.CATEGORY, "better-bow-aimbot", "Automatically aims your bow for you.");
+        super(MeteorRejectsAddon.CATEGORY, "bow-aimbot-plus", "Automatically aims your bow for you.");
     }
 
     @Override
@@ -142,11 +133,11 @@ public class BetterAimbot extends Module {
     }
 
     private void aim(double tickDelta) {
+        if (target == null) return;
         // Velocity based on bow charge.
         float velocity = (mc.player.getItemUseTime() - mc.player.getItemUseTimeLeft()) / 20f;
         velocity = (velocity * velocity + velocity * 2) / 3;
         if (velocity > 1) velocity = 1;
-
         // Positions
         double delta = predict.get() ? mc.player.getEyePos().distanceTo(target.getBoundingBox().getCenter()) * predictStrength.get() : tickDelta;
         double posX = target.getPos().getX() + (target.getPos().getX() - target.prevX) * delta;
