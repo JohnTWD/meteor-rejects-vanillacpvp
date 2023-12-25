@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(value = Offhand.class, remap = false)
 public abstract class OffhandMixin extends Module {
-    @Final private SettingGroup sgPauses;
+    @Final private SettingGroup sgPauses = settings.createGroup("Pauses");
     public OffhandMixin(Category category, String name, String description) {
         super(category, name, description);
     }
