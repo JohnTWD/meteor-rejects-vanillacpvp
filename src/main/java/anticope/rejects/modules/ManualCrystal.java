@@ -198,7 +198,7 @@ public class ManualCrystal extends Module {
         }
 
         if (mc.options.useKey.isPressed()) {
-            if (stopOnEat.get() && mc .player.isUsingItem()) return;
+            if (stopOnEat.get() && mc.player.isUsingItem()) return;
             if (mc.interactionManager.isBreakingBlock()) return;
 
             if (handsHasCrystal()) {
