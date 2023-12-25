@@ -215,7 +215,13 @@ public class ManualCrystal extends Module {
                             if (rotMode.get() == RotateMode.packet) {
                                 float randomOffsetYaw = (float) Utils.random(-.14, .88);
                                 float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
-                                Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(ptrPos) + randomOffsetPitch);
+                                if (!(
+                                        (
+                                                Float.isInfinite(randomOffsetYaw) || Float.isNaN(randomOffsetYaw)
+                                        ) && (
+                                                Float.isInfinite(randomOffsetPitch) || Float.isNaN(randomOffsetPitch))
+                                ))
+                                    Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(ptrPos) + randomOffsetPitch);
                             } else if (rotMode.get() == RotateMode.forced) {
                                 float randomOffsetYaw = (float) Utils.random(-.14, .88);
                                 float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
@@ -239,17 +245,6 @@ public class ManualCrystal extends Module {
                         if (isGoodCrystal(enthr.getEntity(), false)) attack(enthr.getEntity());
                     } else if (!doManualBreakLook.get()) noCrystalInteract();
                     bDel = breakDel.get();
-                } else {
-                    if (rotMode.get() == RotateMode.packet) {
-                        Entity crysEnt = doesBlockHaveEntOnTop();
-                        if (isGoodCrystal(crysEnt, true)) {
-                            float entPitch = (float) Rotations.getPitch(crysEnt, Target.Feet);
-                            float rotDiv = getRotDiv(bDel, entPitch);
-                            float randomOffsetYaw = (float) Utils.random(-1.4, .88);
-                            float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
-                            Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, mc.player.getPitch() + randomOffsetPitch + rotDiv);
-                        }
-                    }
                 }
 
                 pDel--; bDel--;
@@ -293,16 +288,6 @@ public class ManualCrystal extends Module {
         Box box = targetCrystal.getBoundingBox();
         event.renderer.box(x + box.minX, y + box.minY, z + box.minZ, x + box.maxX, y + box.maxY, z + box.maxZ, new Color(0, 0, 0, 0), Color.CYAN, ShapeMode.Lines, 0);
 
-    }
-
-    private float getPitchDelta(float target) {
-        assert mc.player != null;
-        return mc.player.getPitch() - target;
-    }
-
-    private float getRotDiv(int div, float target) {
-        if (div != 0) div = 1;
-        return Math.abs(getPitchDelta(target)) / div;
     }
 
     private boolean isGoodCrystal(Entity target, boolean shouldCheckOnTop) { // the only good crystal is a living one
@@ -356,9 +341,9 @@ public class ManualCrystal extends Module {
         if (noWallCrystal.get() && !PlayerUtils.canSeeEntity(targetCrystal)) return;
 
         if (rotMode.get() == RotateMode.packet) {
-            float randomOffsetYaw = (float) Utils.random(-.14, .88);
-            float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
-            Rotations.rotate(mc.player.getHeadYaw() + randomOffsetYaw, Rotations.getPitch(targetCrystal, Target.Feet) +randomOffsetPitch, EventPriority.HIGHEST);
+            //float randomOffsetYaw = (float) Utils.random(-.14, .88);
+            //float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
+            Rotations.rotate(mc.player.getHeadYaw(), Rotations.getPitch(targetCrystal, Target.Feet), EventPriority.LOWEST);
         } else if (rotMode.get() == RotateMode.forced) {
             float randomOffsetYaw = (float) Utils.random(-.14, .88);
             float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
