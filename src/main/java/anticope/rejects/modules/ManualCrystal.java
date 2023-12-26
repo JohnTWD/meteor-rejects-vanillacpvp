@@ -205,7 +205,10 @@ public class ManualCrystal extends Module {
                 if (allcrosshair.getType() == HitResult.Type.MISS)
                     return;
                 crystalListFilter();
-                int randomFuzz = ThreadLocalRandom.current().nextInt(-delayFuzzing.get(), delayFuzzing.get());
+
+                int randomFuzz = 0;
+                if (delayFuzzing.get() != 0)
+                    randomFuzz = ThreadLocalRandom.current().nextInt(-delayFuzzing.get(), delayFuzzing.get());
 
                 if (pDel + randomFuzz < 0) {
                     if (allcrosshair.getType() == HitResult.Type.BLOCK) {

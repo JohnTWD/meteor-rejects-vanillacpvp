@@ -10,7 +10,6 @@
 - [N]Port City ESP from Velvet 1.18.12 MCBE
 - [N]Mega Block (for big blocks)
 - [N]ID Predict for CA
-- [N]Set Crystal Dead for CA
 - [N]Baritone Bot for grinding stuff
 - [N]Better AutoAnchor
 - [N]Enemies
