@@ -10,6 +10,9 @@ import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.entity.effect.StatusEffectUtil;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -105,4 +108,15 @@ public class RejectEntityUtils {
         return false;
     }
 
+    static public boolean handsHaveItem (PlayerEntity pe, Item item) {
+        ItemStack mainHand = pe.getMainHandStack();
+        ItemStack offHand = pe.getOffHandStack();
+
+        if (mainHand == null || offHand == null) return false;
+
+        Item handItem = mainHand.getItem();
+        Item offItem = offHand.getItem();
+
+        return (handItem == item || offItem == item);
+    }
 }

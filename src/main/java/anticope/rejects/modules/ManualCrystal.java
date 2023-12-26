@@ -1,8 +1,11 @@
 package anticope.rejects.modules;
 
 import anticope.rejects.MeteorRejectsAddon;
+import anticope.rejects.utils.IDPredictUtils;
 import anticope.rejects.utils.WorldUtils;
+import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
+import meteordevelopment.meteorclient.mixininterface.IPlayerInteractEntityC2SPacket;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.events.world.TickEvent;
@@ -23,7 +26,9 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
+import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
@@ -113,6 +118,49 @@ public class ManualCrystal extends Module {
             .sliderRange(0,20)
             .build()
     );
+    private final Setting<Boolean> idPredict = sgGeneral.add(new BoolSetting.Builder()
+            .name("idPredict")
+            .description("funny fast crystals - may get you kicked")
+            .defaultValue(false)
+            .build()
+    );
+
+    private final Setting<Integer> swingType = sgGeneral.add(new IntSetting.Builder()
+            .name("swingType")
+            .description("sorry for not implementing this well lol, but 0: no swing; 1: swing once; 2: swing for each predict sent")
+            .defaultValue(0)
+            .range(0,2)
+            .sliderRange(0,2)
+            .visible(idPredict::get)
+            .build()
+    );
+
+    private final Setting<Integer> idOffset = sgGeneral.add(new IntSetting.Builder()
+            .name("idOffset")
+            .description("offset from highest id")
+            .defaultValue(1)
+            .range(1,20)
+            .sliderRange(1,20)
+            .visible(idPredict::get)
+            .build()
+    );
+
+    private final Setting<Integer> idPackets = sgGeneral.add(new IntSetting.Builder()
+            .name("maxIdOffset")
+            .description("this is directly proportional to chances of a successful prediction AND chances of getting kicked")
+            .defaultValue(1)
+            .range(1,20)
+            .sliderRange(1,20)
+            .visible(idPredict::get)
+            .build()
+    );
+
+    private final Setting<Boolean> setCrystalDead = sgGeneral.add(new BoolSetting.Builder()
+            .name("setCrystalDead")
+            .description("basically removes crystal entities from world after attacking, dunno if it actually makes it faster")
+            .defaultValue(false)
+            .build()
+    );
 
     private final Setting<Boolean> stopOnEat = sgGeneral.add(new BoolSetting.Builder()
             .name("stopOnEat")
@@ -129,7 +177,7 @@ public class ManualCrystal extends Module {
     );
 
 
-
+    private final IDPredictUtils idpred = new IDPredictUtils();
     private int origSlot;
     private int pDel = placeDelay.get();
     private int bDel = breakDel.get();
@@ -303,8 +351,14 @@ public class ManualCrystal extends Module {
     }
 
     private void attack(Entity target) {
+        idpred.update();
+        idpred.checkID(target.getId());
+
         if (!isGoodCrystal(target, false)) return;
-        if (doPacketAttack.get()) mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(target, mc.player.isSneaking()));
+        if (!idpred.isItGoodIdea() || doPacketAttack.get()) mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(target, mc.player.isSneaking()));
+        else if (idPredict.get()) {
+            idpred.packetPredAttack(swingType.get(), idOffset.get(), idPackets.get());
+        }
         else mc.interactionManager.attackEntity(mc.player, target);
         mc.player.swingHand(Hand.MAIN_HAND);
     }
@@ -344,8 +398,6 @@ public class ManualCrystal extends Module {
         if (noWallCrystal.get() && !PlayerUtils.canSeeEntity(targetCrystal)) return;
 
         if (rotMode.get() == RotateMode.packet) {
-            //float randomOffsetYaw = (float) Utils.random(-.14, .88);
-            //float randomOffsetPitch = (float) Utils.random(-2.4, 2.69);
             Rotations.rotate(mc.player.getHeadYaw(), Rotations.getPitch(targetCrystal, Target.Feet), EventPriority.LOWEST);
         } else if (rotMode.get() == RotateMode.forced) {
             float randomOffsetYaw = (float) Utils.random(-.14, .88);
@@ -354,6 +406,22 @@ public class ManualCrystal extends Module {
             mc.player.setHeadYaw(mc.player.getHeadYaw() + randomOffsetYaw);
         }
         attack(targetCrystal);
+    }
+
+    @EventHandler
+    public void onPacketSend(PacketEvent.Send event) {
+        if (setCrystalDead.get() && event.packet instanceof IPlayerInteractEntityC2SPacket pkt && pkt.getType() == PlayerInteractEntityC2SPacket.InteractType.ATTACK) {
+            if (pkt.getEntity() instanceof EndCrystalEntity ece) {
+                mc.world.removeEntity(ece.getId(), Entity.RemovalReason.KILLED);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPacketReceive(PacketEvent.Receive event) {
+        Packet pkt = event.packet;
+        if (pkt instanceof EntitySpawnS2CPacket p1)
+            idpred.checkID(p1.getId());
     }
 
 }
