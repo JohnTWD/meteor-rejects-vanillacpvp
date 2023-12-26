@@ -8,6 +8,8 @@ import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.util.Hand;
 
+import java.lang.reflect.Constructor;
+
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 
@@ -25,10 +27,6 @@ public class IDPredictUtils {
             checkID(entity.getId());
         }
     }
-
-    public int getHighestID() {return highestID;}
-
-    public void setHighestID(int id) {this.highestID = id;}
 
     private boolean hasIllegalItems(PlayerEntity ent) {
         return RejectEntityUtils.handsHaveItem(ent, Items.BOW) ||
@@ -51,10 +49,25 @@ public class IDPredictUtils {
 
             if (ent == null || ent instanceof EndCrystalEntity) {
                 if (swingType == 2) mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
-                ent.setId(id);
-                mc.getNetworkHandler().sendPacket(PlayerInteractEntityC2SPacket.attack(ent, true));
+                retardedPacketAttackWorkaround(id);
             }
         }
         if (swingType == 1) mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
     }
+
+    private void retardedPacketAttackWorkaround(int entityId) {
+        try {
+            // Use reflection to access the private constructor of PlayerInteractEntityC2SPacket
+            Constructor<PlayerInteractEntityC2SPacket> constructor = PlayerInteractEntityC2SPacket.class.getDeclaredConstructor(int.class, PlayerInteractEntityC2SPacket.InteractType.class, boolean.class);
+            constructor.setAccessible(true);
+            // Create a new instance of the packet
+            PlayerInteractEntityC2SPacket packet = constructor.newInstance(entityId, PlayerInteractEntityC2SPacket.InteractType.ATTACK, mc.player.isSneaking());
+            mc.getNetworkHandler().sendPacket(packet);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public int getHighestID() {return highestID;}
+
+    public void setHighestID(int id) {this.highestID = id;}
 }
