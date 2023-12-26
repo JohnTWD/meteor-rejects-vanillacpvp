@@ -357,7 +357,9 @@ public class ManualCrystal extends Module {
         if (!isGoodCrystal(target, false)) return;
         if (!idpred.isItGoodIdea() || doPacketAttack.get()) mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(target, mc.player.isSneaking()));
         else if (idPredict.get()) {
+            mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(target, mc.player.isSneaking()));
             idpred.packetPredAttack(swingType.get(), idOffset.get(), idPackets.get());
+            info("taihigh: %d", idpred.getHighestID());
         }
         else mc.interactionManager.attackEntity(mc.player, target);
         mc.player.swingHand(Hand.MAIN_HAND);

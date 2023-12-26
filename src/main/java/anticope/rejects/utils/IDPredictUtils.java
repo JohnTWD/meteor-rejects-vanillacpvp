@@ -1,5 +1,6 @@
 package anticope.rejects.utils;
 
+import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.decoration.EndCrystalEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -50,6 +51,7 @@ public class IDPredictUtils {
             if (ent == null || ent instanceof EndCrystalEntity) {
                 if (swingType == 2) mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
                 retardedPacketAttackWorkaround(id);
+                ChatUtils.info("attking %d", id);
             }
         }
         if (swingType == 1) mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
@@ -58,10 +60,10 @@ public class IDPredictUtils {
     private void retardedPacketAttackWorkaround(int entityId) {
         try {
             // Use reflection to access the private constructor of PlayerInteractEntityC2SPacket
-            Constructor<PlayerInteractEntityC2SPacket> constructor = PlayerInteractEntityC2SPacket.class.getDeclaredConstructor(int.class, PlayerInteractEntityC2SPacket.InteractType.class, boolean.class);
+            Constructor<PlayerInteractEntityC2SPacket> constructor = PlayerInteractEntityC2SPacket.class.getDeclaredConstructor(int.class, boolean.class, PlayerInteractEntityC2SPacket.InteractType.class);
             constructor.setAccessible(true);
             // Create a new instance of the packet
-            PlayerInteractEntityC2SPacket packet = constructor.newInstance(entityId, PlayerInteractEntityC2SPacket.InteractType.ATTACK, mc.player.isSneaking());
+            PlayerInteractEntityC2SPacket packet = constructor.newInstance(entityId, mc.player.isSneaking(), PlayerInteractEntityC2SPacket.InteractType.ATTACK);
             mc.getNetworkHandler().sendPacket(packet);
         } catch (Exception e) {
             e.printStackTrace();
