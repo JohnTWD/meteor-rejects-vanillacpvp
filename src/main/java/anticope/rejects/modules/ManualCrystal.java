@@ -169,14 +169,6 @@ public class ManualCrystal extends Module {
             .build()
     );
 
-    private final Setting<Boolean> stopBlockPlace = sgGeneral.add(new BoolSetting.Builder()
-            .name("stopBlockPlace")
-            .description("prevents blocks from placing if you are offhanding")
-            .defaultValue(false)
-            .build()
-    );
-
-
     private final IDPredictUtils idpred = new IDPredictUtils();
     private int origSlot;
     private int pDel = placeDelay.get();
@@ -191,14 +183,12 @@ public class ManualCrystal extends Module {
     public boolean shouldStopItemUse() {
         if (!this.isActive()) return false;
         if (mc.player == null) return false;
-        ItemStack h1 = mc.player.getMainHandStack();
         if (!handsHasCrystal()) return false;
         if (!mc.options.useKey.isPressed()) return false;
         if (mc.crosshairTarget == null) return false;
         HitResult allcrosshair = mc.crosshairTarget;
         if (allcrosshair.getType() == HitResult.Type.MISS) return false;
         if (doNaturalPlace.get()) return false;
-        if (stopBlockPlace.get() && h1.getItem() instanceof BlockItem) return false;
 
         mc.player.stopUsingItem();
         return true;
@@ -232,6 +222,8 @@ public class ManualCrystal extends Module {
 
         if (mc.crosshairTarget == null) return;
         HitResult allcrosshair = mc.crosshairTarget;
+
+        if (mc.player.getMainHandStack().getItem() instanceof BlockItem) return;
 
         if (forceSwitch.get() && !handsHasCrystal()){
             FindItemResult result = InvUtils.find(Items.END_CRYSTAL);
