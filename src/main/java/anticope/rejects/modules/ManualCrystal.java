@@ -155,6 +155,24 @@ public class ManualCrystal extends Module {
             .build()
     );
 
+    private final Setting<Integer> idSendSleepTime = sgGeneral.add(new IntSetting.Builder()
+            .name("idSendSleepTime")
+            .description("how long, in ms, to await sending of the next prediction packets")
+            .defaultValue(200)
+            .range(0,1000)
+            .sliderRange(0,1000)
+            .visible(idPredict::get)
+            .build()
+    );
+
+    private final Setting<Boolean> idDebug = sgGeneral.add(new BoolSetting.Builder()
+            .name("DebugIdPredict")
+            .description("outputs highest entities, and what shit to attack")
+            .visible(idPredict::get)
+            .defaultValue(false)
+            .build()
+    );
+
     private final Setting<Boolean> setCrystalDead = sgGeneral.add(new BoolSetting.Builder()
             .name("setCrystalDead")
             .description("basically removes crystal entities from world after attacking, dunno if it actually makes it faster")
@@ -169,11 +187,11 @@ public class ManualCrystal extends Module {
             .build()
     );
 
-    private final IDPredictUtils idpred = new IDPredictUtils();
     private int origSlot;
     private int pDel = placeDelay.get();
     private int bDel = breakDel.get();
     private final List<Entity> crystalEntList = new ArrayList<>();
+    private IDPredictUtils idpred = new IDPredictUtils();;
 
     void resetPhase() {
         pDel = placeDelay.get();
@@ -185,9 +203,14 @@ public class ManualCrystal extends Module {
         if (mc.player == null) return false;
         if (!handsHasCrystal()) return false;
         if (!mc.options.useKey.isPressed()) return false;
+        if (mc.player.getMainHandStack().getItem() instanceof BlockItem) return false;
         if (mc.crosshairTarget == null) return false;
         HitResult allcrosshair = mc.crosshairTarget;
         if (allcrosshair.getType() == HitResult.Type.MISS) return false;
+        if (allcrosshair instanceof BlockHitResult bhr) {
+            BlockPos ptrPos = bhr.getBlockPos();
+            if (!WorldUtils.canCrystalPlace(ptrPos)) return false;
+        }
         if (doNaturalPlace.get()) return false;
 
         mc.player.stopUsingItem();
@@ -195,13 +218,16 @@ public class ManualCrystal extends Module {
     }
     @Override
     public void onActivate() {
+        idpred = new IDPredictUtils();
         resetPhase();
     }
     @Override
     public void onDeactivate() {
-        if (forceSwitch.get()) InvUtils.swap(origSlot, false);
-        resetPhase();
-    }
+        idpred.shutdownExecutor();
+        idpred = null;
+        ;if (forceSwitch.get()) InvUtils.swap(origSlot, false)
+        ;resetPhase()
+    ;}
 
     private boolean handsHasCrystal() {
         ItemStack mainHand = mc.player.getMainHandStack();
@@ -222,8 +248,6 @@ public class ManualCrystal extends Module {
 
         if (mc.crosshairTarget == null) return;
         HitResult allcrosshair = mc.crosshairTarget;
-
-        if (mc.player.getMainHandStack().getItem() instanceof BlockItem) return;
 
         if (forceSwitch.get() && !handsHasCrystal()){
             FindItemResult result = InvUtils.find(Items.END_CRYSTAL);
@@ -347,14 +371,16 @@ public class ManualCrystal extends Module {
         idpred.checkID(target.getId());
 
         if (!isGoodCrystal(target, false)) return;
-        if (!idpred.isItGoodIdea() || doPacketAttack.get()) mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(target, mc.player.isSneaking()));
-        else if (idPredict.get()) {
+        if (doPacketAttack.get() || idPredict.get()) {
             mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(target, mc.player.isSneaking()));
-            idpred.packetPredAttack(swingType.get(), idOffset.get(), idPackets.get());
-            info("taihigh: %d", idpred.getHighestID());
+            if (idPredict.get() && idpred.isItGoodIdea()) {
+                idpred.packetPredAttack(swingType.get(), idOffset.get(), idPackets.get(), idSendSleepTime.get(), idDebug.get());
+            }
         }
-        else mc.interactionManager.attackEntity(mc.player, target);
-        mc.player.swingHand(Hand.MAIN_HAND);
+        else {
+            mc.interactionManager.attackEntity(mc.player, target);
+        }
+        if (!idPredict.get()) mc.player.swingHand(Hand.MAIN_HAND); // we are already swinging
     }
 
     private boolean isEntityOnTop(Entity ent) { // given block, check for entity
