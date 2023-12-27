@@ -12,10 +12,7 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.entity.Target;
-import meteordevelopment.meteorclient.utils.player.FindItemResult;
-import meteordevelopment.meteorclient.utils.player.InvUtils;
-import meteordevelopment.meteorclient.utils.player.PlayerUtils;
-import meteordevelopment.meteorclient.utils.player.Rotations;
+import meteordevelopment.meteorclient.utils.player.*;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
@@ -370,10 +367,13 @@ public class ManualCrystal extends Module {
         idpred.update();
         idpred.checkID(target.getId());
 
+
         if (!isGoodCrystal(target, false)) return;
         if (doPacketAttack.get() || idPredict.get()) {
             mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(target, mc.player.isSneaking()));
             if (idPredict.get() && idpred.isItGoodIdea()) {
+                if(idDebug.get())
+                    ChatUtils.info("current: 0x%X", target.getId());
                 idpred.packetPredAttack(swingType.get(), idOffset.get(), idPackets.get(), idSendSleepTime.get(), idDebug.get());
             }
         }
