@@ -136,8 +136,8 @@ public class ManualCrystal extends Module {
             .name("idOffset")
             .description("offset from highest id")
             .defaultValue(1)
-            .range(1,20)
-            .sliderRange(1,20)
+            .range(1,100)
+            .sliderRange(1,100)
             .visible(idPredict::get)
             .build()
     );
@@ -146,8 +146,8 @@ public class ManualCrystal extends Module {
             .name("maxIdOffset")
             .description("this is directly proportional to chances of a successful prediction AND chances of getting kicked")
             .defaultValue(1)
-            .range(1,20)
-            .sliderRange(1,20)
+            .range(1,100)
+            .sliderRange(1,100)
             .visible(idPredict::get)
             .build()
     );
@@ -215,13 +215,10 @@ public class ManualCrystal extends Module {
     }
     @Override
     public void onActivate() {
-        idpred = new IDPredictUtils();
         resetPhase();
     }
     @Override
     public void onDeactivate() {
-        idpred.shutdownExecutor();
-        idpred = null;
         ;if (forceSwitch.get()) InvUtils.swap(origSlot, false)
         ;resetPhase()
     ;}
@@ -363,17 +360,17 @@ public class ManualCrystal extends Module {
         return  (!(shouldCheckOnTop && !isEntityOnTop(target)));
     }
 
+    private int previousID = -1;
     private void attack(Entity target) {
-        idpred.update();
-        idpred.checkID(target.getId());
-
+        int targId = target.getId();
 
         if (!isGoodCrystal(target, false)) return;
         if (doPacketAttack.get() || idPredict.get()) {
             mc.player.networkHandler.sendPacket(PlayerInteractEntityC2SPacket.attack(target, mc.player.isSneaking()));
             if (idPredict.get() && idpred.isItGoodIdea()) {
                 if(idDebug.get())
-                    ChatUtils.info("current: 0x%X", target.getId());
+                    info("current: 0x%X, | Delta: 0x%X", targId, targId - previousID);
+                previousID = targId;
                 idpred.packetPredAttack(swingType.get(), idOffset.get(), idPackets.get(), idSendSleepTime.get(), idDebug.get());
             }
         }

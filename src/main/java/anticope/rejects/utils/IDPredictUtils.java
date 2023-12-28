@@ -17,9 +17,10 @@ import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 
 public class IDPredictUtils {
+
     private final ScheduledExecutorService execSvc = Executors.newSingleThreadScheduledExecutor();
 
-    private int highestID;
+    private int highestID = -1;
 
     public void checkID(int id) {
         if (id > highestID) {
@@ -28,7 +29,10 @@ public class IDPredictUtils {
     }
 
     public void update() {
-        if (mc.world == null) return;
+        if (mc.world == null) {
+            setHighestID(-1);
+            return;
+        }
 
         for (Entity entity : mc.world.getEntities()) {
             checkID(entity.getId());
@@ -50,6 +54,7 @@ public class IDPredictUtils {
     }
 
     public void packetPredAttack(int swingType, int idOffset, int pktCount, int sendSleepTime, boolean idDebug) {
+        update();
         if(idDebug)
             ChatUtils.info("highest: 0x%X", highestID);
 
@@ -66,6 +71,8 @@ public class IDPredictUtils {
                 }
             }
             if (swingType == 1) mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(Hand.MAIN_HAND));
+
+            setHighestID(-1);
         }, sendSleepTime, TimeUnit.MILLISECONDS);
     }
 
@@ -77,10 +84,6 @@ public class IDPredictUtils {
                         PlayerInteractEntityC2SPacket.ATTACK
                 )
         );
-    }
-
-    public void shutdownExecutor() {
-        execSvc.shutdown();
     }
 
     public int getHighestID() {return highestID;}
