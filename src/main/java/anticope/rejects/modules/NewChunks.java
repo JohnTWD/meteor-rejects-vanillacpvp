@@ -3,12 +3,18 @@ package anticope.rejects.modules;
 import anticope.rejects.MeteorRejectsAddon;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
+import meteordevelopment.meteorclient.events.world.ChunkDataEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
+import meteordevelopment.meteorclient.systems.modules.render.blockesp.ESPChunk;
+import meteordevelopment.meteorclient.utils.Utils;
+import meteordevelopment.meteorclient.utils.network.MeteorExecutor;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
@@ -17,11 +23,10 @@ import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.WorldChunk;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /*
     Ported from: https://github.com/BleachDrinker420/BleachHack/blob/master/BleachHack-Fabric-1.16/src/main/java/bleach/hack/module/mods/NewChunks.java
@@ -39,6 +44,13 @@ public class NewChunks extends Module {
         .defaultValue(true)
         .build()
     );
+
+	private final Setting<Boolean> find1_19 = sgGeneral.add(new BoolSetting.Builder()
+			.name("find1.19")
+			.description("Tries to look for 1.19 chunk using copper ore and nether gold Ore")
+			.defaultValue(false)
+			.build()
+	);
 
 	// render
 	public final Setting<Integer> renderHeight = sgRender.add(new IntSetting.Builder()
@@ -89,12 +101,21 @@ public class NewChunks extends Module {
 			.build()
 	);
 
+	private final Setting<SettingColor> oneDot19Color = sgRender.add(new ColorSetting.Builder()
+			.name("1.19Color")
+			.description("Color of likely 1.19 chunks")
+			.defaultValue(new SettingColor(255, 0, 0, 75))
+			.visible(find1_19::get)
+			.build()
+	);
+
     private final Set<ChunkPos> newChunks = Collections.synchronizedSet(new HashSet<>());
     private final Set<ChunkPos> oldChunks = Collections.synchronizedSet(new HashSet<>());
+	private final Set<ChunkPos> od19chunks = Collections.synchronizedSet(new HashSet<>());
     private static final Direction[] searchDirs = new Direction[] { Direction.EAST, Direction.NORTH, Direction.WEST, Direction.SOUTH, Direction.UP };
 
     public NewChunks() {
-        super(MeteorRejectsAddon.CATEGORY,"new-chunks", "Detects completely new chunks using certain traits of them");
+        super(MeteorRejectsAddon.CATEGORY,"new-chunks", "Detects completely new chunks using certain traits of them (now with 1.19 finder)!");
     }
 
 	@Override
@@ -102,6 +123,7 @@ public class NewChunks extends Module {
 		if (remove.get()) {
 			newChunks.clear();
 			oldChunks.clear();
+			od19chunks.clear();
 		}
 		super.onDeactivate();
 	}
@@ -127,11 +149,50 @@ public class NewChunks extends Module {
 				}
 			}
 		}
+		if (oneDot19Color.get().a > 5) {
+			synchronized (od19chunks) {
+				for (ChunkPos c : od19chunks) {
+					if (mc.getCameraEntity().getBlockPos().isWithinDistance(c.getStartPos(), 1024)) {
+						render(new Box(c.getStartPos(), c.getStartPos().add(16, renderHeight.get(), 16)), oneDot19Color.get(), oneDot19Color.get(), shapeMode.get(), event);
+					}
+				}
+			}
+		}
 	}
 
 	private void render(Box box, Color sides, Color lines, ShapeMode shapeMode, Render3DEvent event) {
 		event.renderer.box(
 			box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, sides, lines, shapeMode, 0);
+	}
+
+	private final List<Block> specific1_19Blocks = Arrays.asList(
+			Blocks.NETHER_GOLD_ORE,
+			Blocks.COPPER_ORE
+	);
+
+	@Override
+	public void onActivate() {
+		if (find1_19.get())
+			for (Chunk chunk : Utils.chunks()) {
+				searchChunk(chunk, null);
+			}
+	}
+
+	@EventHandler
+	private void onChunkData(ChunkDataEvent event) {
+		if (find1_19.get())
+			searchChunk(event.chunk, event);
+	}
+
+	private void searchChunk(Chunk ck, ChunkDataEvent cde) {
+		MeteorExecutor.execute(() -> {
+			if (!isActive()) return;
+			ESPChunk schunk = ESPChunk.searchChunk(ck, specific1_19Blocks);
+			if (schunk.size() > 0) {
+				od19chunks.add(ck.getPos());
+			}
+			if (cde != null) ChunkDataEvent.returnChunkDataEvent(cde);
+		});
 	}
 
 	@EventHandler
@@ -180,7 +241,6 @@ public class NewChunks extends Module {
 				} catch (ArrayIndexOutOfBoundsException e) {
 					return;
 				}
-
 
 				for (int x = 0; x < 16; x++) {
 					for (int y = mc.world.getBottomY(); y < mc.world.getTopY(); y++) {

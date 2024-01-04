@@ -18,6 +18,7 @@
 - [D]BowBomb
 - [D]CevBreaker
 - [D]AutoShield
+- [D]Add 1.19 chunk finder to newChunks
 - [O]Aimbot but working lol
 
 
