@@ -153,7 +153,7 @@ public class NewChunks extends Module {
 			synchronized (od19chunks) {
 				for (ChunkPos c : od19chunks) {
 					if (mc.getCameraEntity().getBlockPos().isWithinDistance(c.getStartPos(), 1024)) {
-						render(new Box(c.getStartPos(), c.getStartPos().add(16, renderHeight.get(), 16)), oneDot19Color.get(), oneDot19Color.get(), shapeMode.get(), event);
+						render(new Box(c.getStartPos().up(3), c.getStartPos().add(16, renderHeight.get(), 16)), oneDot19Color.get(), oneDot19Color.get(), shapeMode.get(), event);
 					}
 				}
 			}
