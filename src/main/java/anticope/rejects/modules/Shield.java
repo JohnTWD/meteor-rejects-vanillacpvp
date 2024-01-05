@@ -18,9 +18,11 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.EndCrystalEntity;
+import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.item.*;
+import net.minecraft.sound.SoundEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,13 @@ public class Shield extends Module {
             .name("entities")
             .description("Entities to block against.")
             .defaultValue(EntityType.PLAYER)
+            .build()
+    );
+
+    private final Setting<Boolean> blockCreeper = sgGeneral.add(new BoolSetting.Builder()
+            .name("anticreeper")
+            .description("only block creepers when they are about to explode")
+            .defaultValue(true)
             .build()
     );
 
@@ -84,16 +93,19 @@ public class Shield extends Module {
     private boolean entityCheck(Entity entity) {
         if (entity.equals(mc.player) || entity.equals(mc.cameraEntity)) return false;
         if ((entity instanceof LivingEntity && ((LivingEntity) entity).isDead()) || !entity.isAlive()) return false;
-        if (PlayerUtils.distanceTo(entity) > range.get()) return false;
+        if (PlayerUtils.squaredDistanceTo(entity) > Math.pow(range.get(), 2)) return false;
         if (!entities.get().contains(entity.getType())) return false;
 
-        if (entity instanceof ArrowEntity && entity.getVelocity().length() != 0) return false; // so we only detect arrows that are flying
+        if (entity instanceof ArrowEntity && entity.getVelocity().lengthSquared() != 0) return false; // so we only detect arrows that are flying
         if (entity instanceof EndCrystalEntity && !PlayerUtils.canSeeEntity(entity)) return false;
         if (entity instanceof PlayerEntity pe) {
             Item m = pe.getMainHandStack().getItem();
             Item o = pe.getOffHandStack().getItem();
             if (!(m instanceof SwordItem && o instanceof SwordItem)) return false;
         }
+        if (blockCreeper.get() && entity instanceof CreeperEntity creepr && creepr.getFuseSpeed() <= 0)
+            return false;
+
         return true;
     }
 }
