@@ -31,6 +31,8 @@ public class MeteorRejectsAddon extends MeteorAddon {
         Modules modules = Modules.get();
 
         modules.add(new BetterAimbot());
+        modules.add(new NewerNewChunks());
+        modules.add(new BaseFinderNew());
         modules.add(new Shield());
         modules.add(new TestModule());
         modules.add(((new HitboxDesync())));
@@ -118,6 +120,8 @@ public class MeteorRejectsAddon extends MeteorAddon {
         Commands.add(new TeleportCommand());
         Commands.add(new TerrainExport());
         Commands.add(new EntityDesyncCommand());
+        Commands.add(new BaseFinderNewCommands());
+        Commands.add(new NewChunkCounter());
 
         // HUD
         Hud hud = Systems.get(Hud.class);
